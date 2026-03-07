@@ -83,6 +83,23 @@ button:active{
 transform:scale(0.96);
 }
 
+/* Lưu ý */
+
+.note{
+margin-top:15px;
+font-size:14px;
+color:#555;
+background:#fff8e1;
+border:1px solid #ffe08a;
+padding:10px;
+border-radius:6px;
+text-align:left;
+}
+
+.note b{
+color:#cc0000;
+}
+
 .footer{
 margin-top:auto;
 text-align:center;
@@ -116,15 +133,20 @@ color:#444;
 <div class="container">
 
 <label>Nhập tàu</label>
-
 <input id="shipInput" placeholder="Ví dụ: S57606">
 
-
 <label>Nhập Block</label>
-
 <input id="blockInput" placeholder="Ví dụ: E41P, 2E31, H12C...">
 
 <button onclick="open3D()">BẮT ĐẦU</button>
+
+<div class="note">
+<b>Lưu ý:</b><br>
+- Trang web chỉ hoạt động khi bạn bật chia sẻ vị trí và bạn đang đứng trong công ty.<br>
+- Phải nhập đúng mã tàu bao gồm 06 ở cuối.<br>
+- Block sẽ tự động chuyển thành chữ in hoa.<br>
+- 3D chỉ có với tàu đầu tiên trong seri.
+</div>
 
 </div>
 
