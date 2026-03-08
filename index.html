@@ -83,8 +83,6 @@ button:active{
 transform:scale(0.96);
 }
 
-/* Lưu ý */
-
 .note{
 margin-top:15px;
 font-size:14px;
@@ -120,6 +118,12 @@ font-weight:bold;
 color:#444;
 }
 
+.counter{
+margin-top:8px;
+font-size:14px;
+color:#333;
+}
+
 </style>
 
 </head>
@@ -142,9 +146,9 @@ color:#444;
 
 <div class="note">
 <b>Lưu ý:</b><br>
-- Trang web chỉ hoạt động khi bạn bật chia sẻ vị trí và bạn đang đứng trong công ty.<br>
+- Trang web chỉ hoạt động khi bạn bật chia sẻ vị trí và bạn đang ở trong công ty.<br>
 - Phải nhập đúng mã tàu bao gồm 06 ở cuối.<br>
-- Block sẽ tự động chuyển thành chữ in hoa.<br>
+- Không phân biệt chữ thường và hoa.<br>
 - 3D chỉ có với tàu đầu tiên trong seri.
 </div>
 
@@ -159,11 +163,18 @@ color:#444;
 <p>Developed by Nguyen Thanh Nhan - 201408</p>
 <p>E/R Out Section</p>
 <p>Outfitting 1</p>
-<p>Version 1.0 | © 2026</p>
+<p>Version 1.1 | © 2026</p>
+
+<div class="counter">
+<p>Tổng lượng truy cập: <span id="visitCount">0</span></p>
+<p>Đang truy cập: <span id="onlineCount">0</span></p>
+</div>
 
 </footer>
 
 <script>
+
+/* Lưu dữ liệu nhập */
 
 window.onload=function(){
 
@@ -180,11 +191,13 @@ document.getElementById("blockInput").value=lastBlock;
 
 }
 
-/* Tự động viết hoa Block */
+/* Viết hoa block */
 
 document.getElementById("blockInput").addEventListener("input", function(){
 this.value=this.value.toUpperCase();
 });
+
+/* Mở 3D */
 
 function open3D(){
 
@@ -199,6 +212,56 @@ var url="https://mobile3d.hmd.co.kr:8087/VIZWide3D/OutfitMobile3dhttps.html?ship
 window.location.href=url;
 
 }
+
+</script>
+
+
+<!-- Firebase -->
+
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getDatabase, ref, runTransaction, onValue, set, onDisconnect }
+from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+const firebaseConfig = {
+apiKey: "AIzaSyCUeBoM7I6AD0YN9GFFumpokHbrIrxVjQg",
+authDomain: "block3d-232d2.firebaseapp.com",
+databaseURL: "https://block3d-232d2-default-rtdb.asia-southeast1.firebasedatabase.app",
+projectId: "block3d-232d2",
+storageBucket: "block3d-232d2.firebasestorage.app",
+messagingSenderId: "860040777410",
+appId: "1:860040777410:web:3e02c994ef7b9835b5b55b"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+/* Đếm tổng truy cập */
+
+const visitRef = ref(db,"visits");
+
+runTransaction(visitRef,(count)=>{
+return (count || 0) + 1;
+});
+
+onValue(visitRef,(snapshot)=>{
+document.getElementById("visitCount").innerText = snapshot.val();
+});
+
+/* Người online */
+
+const userRef = ref(db,"online/"+Date.now());
+
+set(userRef,true);
+
+onDisconnect(userRef).remove();
+
+const onlineRef = ref(db,"online");
+
+onValue(onlineRef,(snapshot)=>{
+document.getElementById("onlineCount").innerText = snapshot.size;
+});
 
 </script>
 
