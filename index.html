@@ -258,6 +258,29 @@ margin-top:6px;
 display:none;
 text-align:left;
 }
+ 
+/* PAGE OPEN ANIMATION */
+
+body{
+opacity:0;
+transform:translateY(-40px);
+animation:pageOpen 0.6s ease forwards;
+}
+
+@keyframes pageOpen{
+
+0%{
+opacity:0;
+transform:translateY(-40px);
+}
+
+100%{
+opacity:1;
+transform:translateY(0);
+}
+
+}
+ 
 </style>
 
 </head>
@@ -498,4 +521,5 @@ document.getElementById("onlineCount").innerText = 0;
 
 </body>
 </html>
+
 
