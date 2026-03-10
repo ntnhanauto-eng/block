@@ -60,6 +60,15 @@ margin-top:8px;
 border-radius:6px;
 border:1px solid #ccc;
 box-sizing:border-box;
+transition:0.25s;
+}
+
+/* VIỀN XANH KHI CLICK */
+
+input:focus{
+border:1px solid #00cc44;
+box-shadow:0 0 8px rgba(0,204,68,0.5);
+outline:none;
 }
 
 button{
@@ -131,7 +140,7 @@ color:#333;
 <body>
 
 <div class="header">
-🚢 3D BLOCK VIEWER
+3D BLOCK VIEWER
 </div>
 
 <div class="container">
@@ -307,4 +316,3 @@ document.getElementById("onlineCount").innerText = 0;
 
 </body>
 </html>
-
