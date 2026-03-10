@@ -125,10 +125,43 @@ font-weight:bold;
 color:#444;
 }
 
+
+/* COUNTER DASHBOARD */
+
+.counter-wrapper{
+margin-top:10px;
+background:#fafafa;
+border:1px solid #ddd;
+border-radius:10px;
+padding:10px;
+box-shadow:0 2px 6px rgba(0,0,0,0.1);
+}
+
 .counter{
-margin-top:8px;
+display:flex;
+justify-content:space-between;
+gap:8px;
+}
+
+.counter-box{
+flex:1;
+background:white;
+border-radius:8px;
+padding:8px;
+text-align:center;
+box-shadow:0 1px 4px rgba(0,0,0,0.1);
+}
+
+.counter-title{
 font-size:10px;
-color:#333;
+color:#666;
+}
+
+.counter-number{
+font-size:14px;
+font-weight:bold;
+margin-top:3px;
+color:#222;
 }
 
 
@@ -210,18 +243,32 @@ font-weight:bold;
 <p>Outfitting 1</p>
 <p>Version 1.1 | © 2026</p>
 
+
+<div class="counter-wrapper">
+
 <div class="counter">
 
-<p>Online: <span id="onlineCount">0</span></p>
-<p>Today visits: <span id="todayCount">0</span></p>
-<p>Total visits: <span id="visitCount">0</span></p>
+<div class="counter-box">
+<div class="counter-title">ONLINE</div>
+<div class="counter-number">🟢 <span id="onlineCount">0</span></div>
+</div>
+
+<div class="counter-box">
+<div class="counter-title">TODAY</div>
+<div class="counter-number">📅 <span id="todayCount">0</span></div>
+</div>
+
+<div class="counter-box">
+<div class="counter-title">TOTAL</div>
+<div class="counter-number">📊 <span id="visitCount">0</span></div>
+</div>
+
+</div>
 
 </div>
 
 </footer>
 
-
-<!-- LOADING SCREEN -->
 
 <div id="loadingScreen">
 
@@ -235,8 +282,6 @@ Loading 3D Model...
 
 
 <script>
-
-/* Lưu dữ liệu nhập */
 
 window.onload=function(){
 
@@ -253,20 +298,14 @@ document.getElementById("blockInput").value=lastBlock;
 
 }
 
-/* Viết hoa block */
-
 document.getElementById("blockInput").addEventListener("input", function(){
 this.value=this.value.toUpperCase();
 });
-
-/* Viết hoa ship */
 
 document.getElementById("shipInput").addEventListener("input", function(){
 this.value=this.value.toUpperCase();
 });
 
-
-/* Mở 3D + Loading */
 
 function open3D(){
 
@@ -295,7 +334,6 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/fireba
 import { getDatabase, ref, runTransaction, onValue, set, onDisconnect }
 from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
-
 const firebaseConfig = {
 
 apiKey: "AIzaSyCUeBoM7I6AD0YN9GFFumpokHbrIrxVjQg",
@@ -307,7 +345,6 @@ messagingSenderId: "860040777410",
 appId: "1:860040777410:web:3e02c994ef7b9835b5b55b"
 
 };
-
 
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
