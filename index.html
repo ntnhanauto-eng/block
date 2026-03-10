@@ -71,23 +71,53 @@ outline:none;
 
 button{
 width:100%;
-padding:16px;
-font-size:18px;
+padding:15px;
+font-size:17px;
 margin-top:25px;
-background:#007bff;
+background:linear-gradient(135deg,#1e88e5,#1565c0);
 color:white;
 border:none;
-border-radius:8px;
+border-radius:12px;
 cursor:pointer;
-transition:0.2s;
+transition:all 0.25s ease;
+box-shadow:0 4px 12px rgba(0,0,0,0.2);
+position:relative;
+overflow:hidden;
 }
+
+/* Hover nổi lên */
 
 button:hover{
-background:#0060cc;
+transform:translateY(-2px);
+box-shadow:0 6px 18px rgba(0,0,0,0.25);
 }
 
+/* Nhấn lún xuống */
+
 button:active{
-transform:scale(0.96);
+transform:scale(0.95);
+box-shadow:0 2px 6px rgba(0,0,0,0.2);
+}
+
+/* Ripple effect */
+
+button::after{
+content:"";
+position:absolute;
+width:0;
+height:0;
+border-radius:50%;
+background:rgba(255,255,255,0.5);
+top:50%;
+left:50%;
+transform:translate(-50%,-50%);
+transition:width 0.45s ease,height 0.45s ease;
+pointer-events:none;
+}
+
+button:active::after{
+width:250px;
+height:250px;
 }
 
 .note{
@@ -401,6 +431,7 @@ document.getElementById("onlineCount").innerText = 0;
 
 </body>
 </html>
+
 
 
 
