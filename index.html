@@ -85,6 +85,22 @@ position:relative;
 overflow:hidden;
 }
 
+ .progress-bar{
+position:absolute;
+left:0;
+top:0;
+height:100%;
+width:0%;
+background:linear-gradient(90deg,#00e676,#00c853);
+border-radius:12px;
+transition:width 0.1s linear;
+z-index:1;
+}
+
+.button-text{
+position:relative;
+z-index:2;
+}
 /* Hover nổi lên */
 
 button:hover{
@@ -261,7 +277,10 @@ text-align:left;
 <label>Nhập Block</label>
 <input id="blockInput" placeholder="Ví dụ: E41P, 2E31, H12C...">
 
-<button onclick="open3D()">BẮT ĐẦU</button>
+<button id="startBtn" onclick="open3D()">
+<div class="progress-bar" id="progressBar"></div>
+<span class="button-text" id="btnText">BẮT ĐẦU</span>
+</button>
 
 <div class="note">
 <b>⚠ Lưu ý:</b><br>
@@ -361,8 +380,6 @@ var ship=document.getElementById("shipInput").value.trim();
 var block=document.getElementById("blockInput").value.trim();
 var error=document.getElementById("shipError");
 
-/* kiểm tra 6 ký tự */
-
 if(ship.length !== 6){
 
 error.style.display="block";
@@ -377,13 +394,30 @@ return;
 localStorage.setItem("ship",ship);
 localStorage.setItem("block",block);
 
-document.getElementById("loadingScreen").style.display="flex";
+var progress=document.getElementById("progressBar");
+var text=document.getElementById("btnText");
+
+text.innerText="Loading...";
+document.getElementById("startBtn").disabled=true;
+
+var width=0;
+
+var interval=setInterval(function(){
+
+width+=2;
+progress.style.width=width+"%";
+
+if(width>=100){
+
+clearInterval(interval);
 
 var url="https://mobile3d.hmd.co.kr:8087/VIZWide3D/OutfitMobile3dhttps.html?ship="+ship+"&block="+block;
 
-setTimeout(function(){
 window.location.href=url;
-},700);
+
+}
+
+},20);
 
 }
 
@@ -464,3 +498,4 @@ document.getElementById("onlineCount").innerText = 0;
 
 </body>
 </html>
+
