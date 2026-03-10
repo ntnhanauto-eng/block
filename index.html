@@ -484,7 +484,14 @@ document.getElementById("visitCount").innerText = snapshot.val() || 0;
 
 /* Truy cập hôm nay */
 
-const today = new Date().toISOString().slice(0,10);
+/* Truy cập hôm nay */
+
+const now = new Date();
+
+const today =
+now.getFullYear() + "-" +
+String(now.getMonth()+1).padStart(2,'0') + "-" +
+String(now.getDate()).padStart(2,'0');
 
 const todayRef = ref(db,"daily/"+today);
 
@@ -495,7 +502,6 @@ return (count || 0) + 1;
 onValue(todayRef,(snapshot)=>{
 document.getElementById("todayCount").innerText = snapshot.val() || 0;
 });
-
 
 /* Người online */
 
@@ -521,5 +527,6 @@ document.getElementById("onlineCount").innerText = 0;
 
 </body>
 </html>
+
 
 
