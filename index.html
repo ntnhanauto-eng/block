@@ -166,8 +166,13 @@ color:#333;
 <p>Version 1.1 | © 2026</p>
 
 <div class="counter">
-<p>Tổng lượng truy cập: <span id="visitCount">0</span></p>
-<p>Đang truy cập: <span id="onlineCount">0</span></p>
+
+<p>Online: <span id="onlineCount">0</span></p>
+
+<p>Today visits: <span id="todayCount">0</span></p>
+
+<p>Total visits: <span id="visitCount">0</span></p>
+
 </div>
 
 </footer>
@@ -216,15 +221,15 @@ window.location.href=url;
 </script>
 
 
-<!-- Firebase -->
-
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getDatabase, ref, runTransaction, onValue, set, onDisconnect }
 from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
+
 const firebaseConfig = {
+
 apiKey: "AIzaSyCUeBoM7I6AD0YN9GFFumpokHbrIrxVjQg",
 authDomain: "block3d-232d2.firebaseapp.com",
 databaseURL: "https://block3d-232d2-default-rtdb.asia-southeast1.firebasedatabase.app",
@@ -232,12 +237,16 @@ projectId: "block3d-232d2",
 storageBucket: "block3d-232d2.firebasestorage.app",
 messagingSenderId: "860040777410",
 appId: "1:860040777410:web:3e02c994ef7b9835b5b55b"
+
 };
+
 
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-/* Đếm tổng truy cập */
+
+
+/* Tổng truy cập */
 
 const visitRef = ref(db,"visits");
 
@@ -246,8 +255,26 @@ return (count || 0) + 1;
 });
 
 onValue(visitRef,(snapshot)=>{
-document.getElementById("visitCount").innerText = snapshot.val();
+document.getElementById("visitCount").innerText = snapshot.val() || 0;
 });
+
+
+
+/* Truy cập hôm nay */
+
+const today = new Date().toISOString().slice(0,10);
+
+const todayRef = ref(db,"daily/"+today);
+
+runTransaction(todayRef,(count)=>{
+return (count || 0) + 1;
+});
+
+onValue(todayRef,(snapshot)=>{
+document.getElementById("todayCount").innerText = snapshot.val() || 0;
+});
+
+
 
 /* Người online */
 
@@ -260,14 +287,17 @@ onDisconnect(userRef).remove();
 const onlineRef = ref(db,"online");
 
 onValue(onlineRef,(snapshot)=>{
+
+if(snapshot.exists()){
 document.getElementById("onlineCount").innerText = snapshot.size;
+}else{
+document.getElementById("onlineCount").innerText = 0;
+}
+
 });
+
 
 </script>
 
 </body>
 </html>
-
-
-
-
