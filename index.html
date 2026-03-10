@@ -63,8 +63,6 @@ box-sizing:border-box;
 transition:0.25s;
 }
 
-/* VIỀN XANH KHI CLICK */
-
 input:focus{
 border:1px solid #00cc44;
 box-shadow:0 0 8px rgba(0,204,68,0.5);
@@ -133,6 +131,44 @@ font-size:10px;
 color:#333;
 }
 
+
+/* LOADING SCREEN */
+
+#loadingScreen{
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:white;
+display:none;
+justify-content:center;
+align-items:center;
+flex-direction:column;
+z-index:9999;
+}
+
+.loader{
+border:6px solid #f3f3f3;
+border-top:6px solid #00cc44;
+border-radius:50%;
+width:55px;
+height:55px;
+animation:spin 1s linear infinite;
+margin-bottom:15px;
+}
+
+@keyframes spin{
+0%{transform:rotate(0deg);}
+100%{transform:rotate(360deg);}
+}
+
+.loading-text{
+font-size:18px;
+color:#333;
+font-weight:bold;
+}
+
 </style>
 
 </head>
@@ -177,14 +213,26 @@ color:#333;
 <div class="counter">
 
 <p>Online: <span id="onlineCount">0</span></p>
-
 <p>Today visits: <span id="todayCount">0</span></p>
-
 <p>Total visits: <span id="visitCount">0</span></p>
 
 </div>
 
 </footer>
+
+
+<!-- LOADING SCREEN -->
+
+<div id="loadingScreen">
+
+<div class="loader"></div>
+
+<div class="loading-text">
+Loading 3D Model...
+</div>
+
+</div>
+
 
 <script>
 
@@ -217,7 +265,8 @@ document.getElementById("shipInput").addEventListener("input", function(){
 this.value=this.value.toUpperCase();
 });
 
-/* Mở 3D */
+
+/* Mở 3D + Loading */
 
 function open3D(){
 
@@ -227,9 +276,13 @@ var block=document.getElementById("blockInput").value;
 localStorage.setItem("ship",ship);
 localStorage.setItem("block",block);
 
+document.getElementById("loadingScreen").style.display="flex";
+
 var url="https://mobile3d.hmd.co.kr:8087/VIZWide3D/OutfitMobile3dhttps.html?ship="+ship+"&block="+block;
 
+setTimeout(function(){
 window.location.href=url;
+},700);
 
 }
 
@@ -260,7 +313,6 @@ const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
 
-
 /* Tổng truy cập */
 
 const visitRef = ref(db,"visits");
@@ -272,7 +324,6 @@ return (count || 0) + 1;
 onValue(visitRef,(snapshot)=>{
 document.getElementById("visitCount").innerText = snapshot.val() || 0;
 });
-
 
 
 /* Truy cập hôm nay */
@@ -288,7 +339,6 @@ return (count || 0) + 1;
 onValue(todayRef,(snapshot)=>{
 document.getElementById("todayCount").innerText = snapshot.val() || 0;
 });
-
 
 
 /* Người online */
@@ -310,7 +360,6 @@ document.getElementById("onlineCount").innerText = 0;
 }
 
 });
-
 
 </script>
 
