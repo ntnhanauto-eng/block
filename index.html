@@ -81,43 +81,25 @@ border-radius:12px;
 cursor:pointer;
 transition:all 0.25s ease;
 box-shadow:0 4px 12px rgba(0,0,0,0.2);
-position:relative;
-overflow:hidden;
 }
-
-/* Hover nổi lên */
 
 button:hover{
 transform:translateY(-2px);
 box-shadow:0 6px 18px rgba(0,0,0,0.25);
 }
 
-/* Nhấn lún xuống */
-
 button:active{
 transform:scale(0.95);
-box-shadow:0 2px 6px rgba(0,0,0,0.2);
 }
 
-/* Ripple effect */
+/* THÔNG BÁO LỖI */
 
-button::after{
-content:"";
-position:absolute;
-width:0;
-height:0;
-border-radius:50%;
-background:rgba(255,255,255,0.5);
-top:50%;
-left:50%;
-transform:translate(-50%,-50%);
-transition:width 0.45s ease,height 0.45s ease;
-pointer-events:none;
-}
-
-button:active::after{
-width:250px;
-height:250px;
+.error-message{
+color:#d60000;
+font-size:14px;
+margin-top:6px;
+display:none;
+text-align:left;
 }
 
 .note{
@@ -155,8 +137,7 @@ font-weight:bold;
 color:#444;
 }
 
-
-/* COUNTER DASHBOARD */
+/* COUNTER */
 
 .counter-wrapper{
 margin-top:10px;
@@ -164,7 +145,6 @@ background:#fafafa;
 border:1px solid #ddd;
 border-radius:10px;
 padding:10px;
-box-shadow:0 2px 6px rgba(0,0,0,0.1);
 }
 
 .counter{
@@ -179,7 +159,6 @@ background:white;
 border-radius:8px;
 padding:8px;
 text-align:center;
-box-shadow:0 1px 4px rgba(0,0,0,0.1);
 }
 
 .counter-title{
@@ -191,11 +170,9 @@ color:#666;
 font-size:14px;
 font-weight:bold;
 margin-top:3px;
-color:#222;
 }
 
-
-/* LOADING SCREEN */
+/* LOADING */
 
 #loadingScreen{
 position:fixed;
@@ -246,6 +223,7 @@ font-weight:bold;
 
 <label>Nhập tàu</label>
 <input id="shipInput" placeholder="Ví dụ: S57606">
+<div id="shipError" class="error-message">⚠ Mã tàu phải gồm đúng 6 ký tự</div>
 
 <label>Nhập Block</label>
 <input id="blockInput" placeholder="Ví dụ: E41P, 2E31, H12C...">
@@ -272,7 +250,6 @@ font-weight:bold;
 <p>E/R Out Section - Outfitting 1</p>
 <p>Version 1.2 | © 2026</p>
 
-
 <div class="counter-wrapper">
 
 <div class="counter">
@@ -298,48 +275,39 @@ font-weight:bold;
 
 </footer>
 
-
 <div id="loadingScreen">
-
 <div class="loader"></div>
-
 <div class="loading-text">
 Loading 3D Model...
 </div>
-
 </div>
-
 
 <script>
 
-window.onload=function(){
-
-var lastShip=localStorage.getItem("ship");
-var lastBlock=localStorage.getItem("block");
-
-if(lastShip){
-document.getElementById("shipInput").value=lastShip;
-}
-
-if(lastBlock){
-document.getElementById("blockInput").value=lastBlock;
-}
-
-}
-
-document.getElementById("blockInput").addEventListener("input", function(){
+document.getElementById("blockInput").addEventListener("input",function(){
 this.value=this.value.toUpperCase();
 });
 
-document.getElementById("shipInput").addEventListener("input", function(){
+document.getElementById("shipInput").addEventListener("input",function(){
 this.value=this.value.toUpperCase();
 });
-
 
 function open3D(){
 
-var ship=document.getElementById("shipInput").value;
-var block=document.getElementById("blockInput").value;
+var ship=document.getElementById("shipInput").value.trim();
+var block=document.getElementById("blockInput").value.trim();
+var error=document.getElementById("shipError");
+
+if(ship.length!==6){
+
+error.style.display="block";
+
+setTimeout(function(){
+error.style.display="none";
+},3000);
+
+return;
+}
 
 localStorage.setItem("ship",ship);
 localStorage.setItem("block",block);
@@ -356,83 +324,5 @@ window.location.href=url;
 
 </script>
 
-
-<script type="module">
-
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getDatabase, ref, runTransaction, onValue, set, onDisconnect }
-from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
-
-const firebaseConfig = {
-
-apiKey: "AIzaSyCUeBoM7I6AD0YN9GFFumpokHbrIrxVjQg",
-authDomain: "block3d-232d2.firebaseapp.com",
-databaseURL: "https://block3d-232d2-default-rtdb.asia-southeast1.firebasedatabase.app",
-projectId: "block3d-232d2",
-storageBucket: "block3d-232d2.firebasestorage.app",
-messagingSenderId: "860040777410",
-appId: "1:860040777410:web:3e02c994ef7b9835b5b55b"
-
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);
-
-
-/* Tổng truy cập */
-
-const visitRef = ref(db,"visits");
-
-runTransaction(visitRef,(count)=>{
-return (count || 0) + 1;
-});
-
-onValue(visitRef,(snapshot)=>{
-document.getElementById("visitCount").innerText = snapshot.val() || 0;
-});
-
-
-/* Truy cập hôm nay */
-
-const today = new Date().toISOString().slice(0,10);
-
-const todayRef = ref(db,"daily/"+today);
-
-runTransaction(todayRef,(count)=>{
-return (count || 0) + 1;
-});
-
-onValue(todayRef,(snapshot)=>{
-document.getElementById("todayCount").innerText = snapshot.val() || 0;
-});
-
-
-/* Người online */
-
-const userRef = ref(db,"online/"+Date.now());
-
-set(userRef,true);
-
-onDisconnect(userRef).remove();
-
-const onlineRef = ref(db,"online");
-
-onValue(onlineRef,(snapshot)=>{
-
-if(snapshot.exists()){
-document.getElementById("onlineCount").innerText = snapshot.size;
-}else{
-document.getElementById("onlineCount").innerText = 0;
-}
-
-});
-
-</script>
-
 </body>
 </html>
-
-
-
-
-
