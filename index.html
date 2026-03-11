@@ -355,7 +355,29 @@ text-align:left;
 text-decoration:underline;
 
 }
- 
+
+
+ /* SHIP AUTO SUGGEST */
+
+#shipSuggest{
+border:1px solid #ccc;
+border-radius:6px;
+background:white;
+max-height:160px;
+overflow-y:auto;
+margin-top:5px;
+box-shadow:0 2px 6px rgba(0,0,0,0.15);
+}
+
+.suggest-item{
+padding:10px;
+cursor:pointer;
+font-size:16px;
+}
+
+.suggest-item:hover{
+background:#f2f2f2;
+}
  
 </style>
 
@@ -384,6 +406,9 @@ HD Hyundai Vietnam
 
 <label>Nhập tàu</label>
 <input id="shipInput" maxlength="6" placeholder="Ví dụ: S57606">
+
+<div id="shipSuggest"></div>
+
 <div id="shipError" class="error-message">⚠ Mã tàu phải đủ 6 ký tự</div>
 
 <label>Nhập Block</label>
@@ -454,7 +479,16 @@ Loading 3D Model...
 
 
 <script>
+/* DANH SÁCH TÀU */
 
+const shipList = [
+
+"S53706",
+"S55006",
+"S56906",
+"S57606",
+
+];
 window.onload=function(){
 
 var lastShip=localStorage.getItem("ship");
@@ -558,6 +592,55 @@ document.addEventListener("keypress",function(e){
 
 if(e.key==="Enter"){
 open3D();
+}
+
+});
+
+/* AUTO SUGGEST SHIP */
+
+document.getElementById("shipInput").addEventListener("input",function(){
+
+let value = this.value.toUpperCase();
+let suggestBox = document.getElementById("shipSuggest");
+
+suggestBox.innerHTML="";
+
+if(value.length < 1) return;
+
+shipList.forEach(function(ship){
+
+if(ship.includes(value)){
+
+let div=document.createElement("div");
+
+div.className="suggest-item";
+
+div.innerText=ship;
+
+div.onclick=function(){
+
+document.getElementById("shipInput").value=ship;
+
+suggestBox.innerHTML="";
+
+document.getElementById("blockInput").focus();
+
+};
+
+suggestBox.appendChild(div);
+
+}
+
+});
+
+});
+
+document.addEventListener("click",function(e){
+
+if(!document.getElementById("shipInput").contains(e.target)){
+
+document.getElementById("shipSuggest").innerHTML="";
+
 }
 
 });
@@ -697,6 +780,7 @@ alert("Trình duyệt không hỗ trợ chia sẻ");
  
 </body>
 </html>
+
 
 
 
