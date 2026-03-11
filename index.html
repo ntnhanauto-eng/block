@@ -336,6 +336,26 @@ visibility:hidden;
 }
 }
 
+.share-mini{
+
+font-size:13px;
+color:#0077cc;
+
+cursor:pointer;
+
+margin-top:6px;
+margin-bottom:10px;
+
+text-align:left;
+
+}
+
+.share-mini:hover{
+
+text-decoration:underline;
+
+}
+ 
  
 </style>
 
@@ -653,10 +673,31 @@ alert("⚠ Ứng dụng 3D BLOCK hoạt động tốt nhất trên điện tho�
 
 </script>
 
+<script>
 
+function shareApp(){
+
+if(navigator.share){
+
+navigator.share({
+title:"3D BLOCK VIEWER",
+text:"3D Block Viewer - HD Hyundai Vietnam",
+url:"https://ntnhanauto-eng.github.io/block/"
+});
+
+}else{
+
+alert("Trình duyệt không hỗ trợ chia sẻ");
+
+}
+
+}
+
+</script>
  
 </body>
 </html>
+
 
 
 
