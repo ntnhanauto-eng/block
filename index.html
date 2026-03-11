@@ -283,13 +283,74 @@ transform:translateY(0);
 }
 
 }
+
+/* SPLASH SCREEN */
+
+#splashScreen{
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:white;
+display:flex;
+flex-direction:column;
+justify-content:center;
+align-items:center;
+z-index:9999;
+animation:splashFade 0.8s ease forwards;
+animation-delay:1.2s;
+}
+
+.splash-logo{
+font-size:28px;
+font-weight:bold;
+color:#00cc44;
+margin-bottom:6px;
+}
+
+.splash-sub{
+font-size:14px;
+color:#555;
+margin-bottom:20px;
+}
+
+.splash-loader{
+width:45px;
+height:45px;
+border:4px solid #eee;
+border-top:4px solid #00cc44;
+border-radius:50%;
+animation:spin 1s linear infinite;
+}
+
+@keyframes splashFade{
+to{
+opacity:0;
+visibility:hidden;
+}
+}
+
  
 </style>
 
 </head>
 
 <body>
+<div id="splashScreen">
 
+<div class="splash-logo">
+3D BLOCK VIEWER
+</div>
+
+<div class="splash-sub">
+HD Hyundai Vietnam
+</div>
+
+<div class="splash-loader"></div>
+
+</div>
+ 
 <div class="header">
 3D BLOCK VIEWER
 </div>
@@ -530,6 +591,7 @@ document.getElementById("onlineCount").innerText = 0;
 
 </body>
 </html>
+
 
 
 
