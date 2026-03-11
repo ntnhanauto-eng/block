@@ -65,12 +65,19 @@ width:100%;
 padding:14px;
 font-size:18px;
 margin-top:8px;
-border-radius:6px;
-border:1px solid #ccc;
+
+border-radius:10px;
+border:1px solid #ddd;
+
 box-sizing:border-box;
 transition:0.25s;
-}
 
+outline:none;
+appearance:none;
+-webkit-appearance:none;
+background:white;
+}
+ 
 input:focus{
 border:1px solid #00cc44;
 box-shadow:0 0 8px rgba(0,204,68,0.5);
@@ -411,14 +418,24 @@ cursor:pointer;
 margin-left:10px;
 }
 
-.ship-delete{
 
-color:red;
-font-size:14px;
-cursor:pointer;
-margin-left:10px;
-
+input::-webkit-search-decoration,
+input::-webkit-search-cancel-button,
+input::-webkit-search-results-button,
+input::-webkit-search-results-decoration{
+display:none;
 }
+
+input::-webkit-inner-spin-button,
+input::-webkit-outer-spin-button{
+appearance:none;
+}
+ 
+#shipSuggest:empty,
+#blockSuggest:empty{
+display:none;
+}
+
  
 </style>
 
@@ -481,7 +498,7 @@ HD Hyundai Vietnam
 <p>Developed by</p>
 <p> Nguyen Thanh Nhan - 201408</p>
 <p>E/R Outfitting 1</p>
-<p>Version 1.3 | © 2026</p>
+<p>Version 1.5 | © 2026</p>
 
 
 <div class="counter-wrapper">
@@ -623,19 +640,7 @@ localStorage.setItem("blockHistory",JSON.stringify(blockHistory));
 
 }
 
-/* lưu ship vào lịch sử */
 
-if(!shipHistory.includes(ship)){
-
-shipHistory.unshift(ship);
-
-if(shipHistory.length > 10){
-shipHistory.pop();
-}
-
-localStorage.setItem("shipHistory",JSON.stringify(shipHistory));
-
-}
  
 
 var progress=document.getElementById("progressBar");
@@ -684,42 +689,23 @@ suggestBox.innerHTML="";
 
 if(value.length < 1) return;
 
-/* gộp danh sách tàu */
-
-let allShips = [...new Set([...shipHistory, ...shipList])];
-
-allShips.forEach(function(ship){
+shipList.forEach(function(ship){
 
 if(ship.includes(value)){
 
 let div=document.createElement("div");
+
 div.className="suggest-item";
 
-div.innerHTML =
-"<span>"+ship+"</span>"+
-"<span class='ship-delete'>✖</span>";
+div.innerText=ship;
 
-/* chọn tàu */
-
-div.querySelector("span").onclick=function(){
+div.onclick=function(){
 
 document.getElementById("shipInput").value=ship;
+
 suggestBox.innerHTML="";
+
 document.getElementById("blockInput").focus();
-
-};
-
-/* xoá tàu */
-
-div.querySelector(".ship-delete").onclick=function(e){
-
-e.stopPropagation();
-
-shipHistory = shipHistory.filter(s=>s!==ship);
-
-localStorage.setItem("shipHistory",JSON.stringify(shipHistory));
-
-div.remove();
 
 };
 
@@ -927,7 +913,7 @@ if(navigator.share){
 navigator.share({
 title:"3D BLOCK VIEWER",
 text:"3D Block Viewer - HD Hyundai Vietnam",
-url:"https://ntnhanauto-eng.github.io/block/"
+url:"https://ntnhanauto-eng.github.io/block3dviewer/"
 });
 
 }else{
@@ -942,17 +928,6 @@ alert("Trình duyệt không hỗ trợ chia sẻ");
  
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
 
 
 
