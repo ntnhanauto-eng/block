@@ -1,7 +1,7 @@
 {
 "name": "3D Block Viewer",
 "short_name": "3D BLOCK",
-"description": "3D Ship Block Viewer - HD Hyundai Vietnam",
+"description": "3D Block Viewer - HD Hyundai Vietnam",
 "start_url": "./",
 "display": "standalone",
 "background_color": "#ffffff",
@@ -20,3 +20,4 @@
 }
 ]
 }
+
