@@ -28,7 +28,7 @@ content="#00cc44">
 content="3D BLOCK Viewer">
 
 <meta property="og:description"
-content="3D Ship Block Viewer - HD Hyundai Vietnam">
+content="3D Block Viewer - HD Hyundai Vietnam">
 
 <meta property="og:image"
 content="https://ntnhanauto-eng.github.io/block/app-icon.png">
@@ -374,6 +374,23 @@ visibility:hidden;
 }
 }
 
+ .share-btn{
+position:fixed;
+bottom:20px;
+right:20px;
+
+background:#00cc44;
+color:white;
+
+border:none;
+padding:12px 18px;
+
+border-radius:30px;
+font-size:16px;
+
+box-shadow:0 4px 10px rgba(0,0,0,0.3);
+
+}
  
 </style>
 
@@ -691,11 +708,35 @@ alert("⚠ Ứng dụng 3D BLOCK VIEWER hoạt động tốt nhất trên điệ
 
 </script>
 
+<button onclick="shareApp()">
+📤 Share
+</button>
 
+ <script>
 
+function shareApp(){
+
+if(navigator.share){
+
+navigator.share({
+title: "3D BLOCK Viewer",
+text: "3D Block Viewer - HD Hyundai Vietnam",
+url: "https://ntnhanauto-eng.github.io/block/"
+});
+
+}else{
+
+alert("Trình duyệt không hỗ trợ Share");
+
+}
+
+}
+
+</script>
  
 </body>
 </html>
+
 
 
 
