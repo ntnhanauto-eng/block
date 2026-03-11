@@ -411,7 +411,14 @@ cursor:pointer;
 margin-left:10px;
 }
 
+.ship-delete{
 
+color:red;
+font-size:14px;
+cursor:pointer;
+margin-left:10px;
+
+}
  
 </style>
 
@@ -616,7 +623,19 @@ localStorage.setItem("blockHistory",JSON.stringify(blockHistory));
 
 }
 
+/* lưu ship vào lịch sử */
 
+if(!shipHistory.includes(ship)){
+
+shipHistory.unshift(ship);
+
+if(shipHistory.length > 10){
+shipHistory.pop();
+}
+
+localStorage.setItem("shipHistory",JSON.stringify(shipHistory));
+
+}
  
 
 var progress=document.getElementById("progressBar");
@@ -665,23 +684,42 @@ suggestBox.innerHTML="";
 
 if(value.length < 1) return;
 
-shipList.forEach(function(ship){
+/* gộp danh sách tàu */
+
+let allShips = [...new Set([...shipHistory, ...shipList])];
+
+allShips.forEach(function(ship){
 
 if(ship.includes(value)){
 
 let div=document.createElement("div");
-
 div.className="suggest-item";
 
-div.innerText=ship;
+div.innerHTML =
+"<span>"+ship+"</span>"+
+"<span class='ship-delete'>✖</span>";
 
-div.onclick=function(){
+/* chọn tàu */
+
+div.querySelector("span").onclick=function(){
 
 document.getElementById("shipInput").value=ship;
-
 suggestBox.innerHTML="";
-
 document.getElementById("blockInput").focus();
+
+};
+
+/* xoá tàu */
+
+div.querySelector(".ship-delete").onclick=function(e){
+
+e.stopPropagation();
+
+shipHistory = shipHistory.filter(s=>s!==ship);
+
+localStorage.setItem("shipHistory",JSON.stringify(shipHistory));
+
+div.remove();
 
 };
 
@@ -904,6 +942,7 @@ alert("Trình duyệt không hỗ trợ chia sẻ");
  
 </body>
 </html>
+
 
 
 
