@@ -358,7 +358,15 @@ HD Hyundai Vietnam
 <div class="container">
 
 <label>Nhập tàu</label>
-<input id="shipInput" maxlength="6" placeholder="Ví dụ: S57606">
+<input id="shipInput" maxlength="6" placeholder="Ví dụ: S57606" list="shipList">
+
+<datalist id="shipList">
+
+<option value="S53706">
+<option value="S55006">
+<option value="S57606">
+<option value="S56906">
+</datalist>
 <div id="shipError" class="error-message">⚠ Mã tàu phải đủ 6 ký tự</div>
 
 <label>Nhập Block</label>
@@ -621,6 +629,7 @@ document.getElementById("onlineCount").innerText = 0;
 
 </body>
 </html>
+
 
 
 
