@@ -363,7 +363,8 @@ HD Hyundai Vietnam
 
 <label>Nhập Block</label>
 <input id="blockInput" placeholder="Ví dụ: E41P, 2E31, H12C...">
-
+<div id="blockError" class="error-message">⚠ Vui lòng nhập Block</div>
+ 
 <button id="startBtn" onclick="open3D()">
 <div class="progress-bar" id="progressBar"></div>
 <span class="button-text" id="btnText">BẮT ĐẦU</span>
@@ -467,6 +468,7 @@ function open3D(){
 var ship=document.getElementById("shipInput").value.trim();
 var block=document.getElementById("blockInput").value.trim();
 var error=document.getElementById("shipError");
+var blockError=document.getElementById("blockError");
 
 if(ship.length !== 6){
 
@@ -479,6 +481,18 @@ error.style.display="none";
 return;
 }
 
+if(block === ""){
+
+blockError.style.display="block";
+
+setTimeout(function(){
+blockError.style.display="none";
+},3000);
+
+return;
+
+}
+ 
 localStorage.setItem("ship",ship);
 localStorage.setItem("block",block);
 
@@ -592,6 +606,7 @@ document.getElementById("onlineCount").innerText = 0;
 
 </body>
 </html>
+
 
 
 
