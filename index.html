@@ -1,45 +1,7 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-<meta charset="UTF-8">
 
-<meta name="viewport"
-content="width=device-width, initial-scale=1.0">
-
-<title>3D BLOCK Viewer - HD Hyundai Vietnam</title>
-
-<meta name="description"
-content="3D Ship Block Viewer for shipbuilding inspection - HD Hyundai Vietnam">
-
-<meta name="keywords"
-content="3D block, shipbuilding, HD Hyundai Vietnam, 3D viewer">
-
-<meta name="author"
-content="HD Hyundai Vietnam">
-
-<meta name="theme-color"
-content="#00cc44">
-
-<link rel="manifest" href="manifest.json">
-
-<link rel="icon" href="icon.png">
-
-<meta property="og:title"
-content="3D BLOCK Viewer">
-
-<meta property="og:description"
-content="3D Block Viewer - HD Hyundai Vietnam">
-
-<meta property="og:image"
-content="https://ntnhanauto-eng.github.io/block/app-icon.png">
-
-<meta property="og:url"
-content="https://ntnhanauto-eng.github.io/block/">
-
-<meta property="og:type"
-content="website">
-
- 
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
@@ -374,23 +336,6 @@ visibility:hidden;
 }
 }
 
- .share-btn{
-position:fixed;
-bottom:20px;
-right:20px;
-
-background:#00cc44;
-color:white;
-
-border:none;
-padding:12px 18px;
-
-border-radius:30px;
-font-size:16px;
-
-box-shadow:0 4px 10px rgba(0,0,0,0.3);
-
-}
  
 </style>
 
@@ -702,58 +647,16 @@ return /Android|iPhone|iPad|iPod|Opera Mini|IEMobile/i
 
 if(!isMobile()){
 
-alert("⚠ Ứng dụng 3D BLOCK VIEWER hoạt động tốt nhất trên điện thoại.");
+alert("⚠ Ứng dụng 3D BLOCK hoạt động tốt nhất trên điện thoại.");
 
 }
 
 </script>
 
-<button onclick="shareApp()">
-📤 Share
-</button>
 
- <script>
-
-function shareApp(){
-
-if(navigator.share){
-
-navigator.share({
-title: "3D BLOCK Viewer",
-text: "3D Block Viewer - HD Hyundai Vietnam",
-url: "https://ntnhanauto-eng.github.io/block/"
-});
-
-}else{
-
-alert("Trình duyệt không hỗ trợ Share");
-
-}
-
-}
-
-</script>
  
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
