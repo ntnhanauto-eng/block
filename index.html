@@ -623,20 +623,22 @@ document.getElementById("onlineCount").innerText = 0;
 
 </script>
 
-if("serviceWorker" in navigator){
+<script>
 
-navigator.serviceWorker
-.register("service-worker.js")
-.then(()=>{
+if ("serviceWorker" in navigator) {
 
+navigator.serviceWorker.register("service-worker.js")
+.then(function(){
 console.log("Service Worker Registered");
-
 });
 
 }
+
+</script>
  
 </body>
 </html>
+
 
 
 
