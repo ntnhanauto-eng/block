@@ -635,9 +635,30 @@ console.log("Service Worker Registered");
 }
 
 </script>
+
+<script>
+
+function isMobile(){
+
+return /Android|iPhone|iPad|iPod|Opera Mini|IEMobile/i
+.test(navigator.userAgent);
+
+}
+
+if(!isMobile()){
+
+alert("⚠ Ứng dụng 3D BLOCK VIEWER hoạt động tốt nhất trên điện thoại.");
+
+}
+
+</script>
+
+
+
  
 </body>
 </html>
+
 
 
 
