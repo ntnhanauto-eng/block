@@ -441,6 +441,19 @@ appearance:none;
 display:none;
 }
 
+.loading-dots::after{
+content:"";
+animation:dots 1s infinite steps(4);
+}
+
+@keyframes dots{
+0%{content:"";}
+25%{content:".";}
+50%{content:"..";}
+75%{content:"...";}
+100%{content:"....";}
+}
+ 
  
 </style>
 
@@ -651,7 +664,7 @@ localStorage.setItem("blockHistory",JSON.stringify(blockHistory));
 var progress=document.getElementById("progressBar");
 var text=document.getElementById("btnText");
 
-text.innerText="Đang mở 3D.....";
+text.innerHTML="Đang mở 3D<span class='loading-dots'></span>";
 document.getElementById("startBtn").disabled=true;
 
 var width=0;
@@ -933,6 +946,7 @@ alert("Trình duyệt không hỗ trợ chia sẻ");
  
 </body>
 </html>
+
 
 
 
