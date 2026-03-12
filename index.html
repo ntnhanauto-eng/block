@@ -463,6 +463,35 @@ animation:blink 1s infinite;
 transform:translateZ(0);
 }
 
+ .splash-logo{
+animation:logoFade 1s ease;
+}
+
+@keyframes logoFade{
+
+0%{
+opacity:0;
+transform:scale(0.9);
+}
+
+100%{
+opacity:1;
+transform:scale(1);
+}
+
+}
+
+#onlineCount{
+animation:pulse 2s infinite;
+}
+
+@keyframes pulse{
+
+0%{opacity:1}
+50%{opacity:0.4}
+100%{opacity:1}
+
+}
  
 </style>
 
@@ -957,6 +986,7 @@ alert("Trình duyệt không hỗ trợ chia sẻ");
  
 </body>
 </html>
+
 
 
 
