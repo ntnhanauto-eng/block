@@ -802,9 +802,12 @@ box.appendChild(div);
 
 document.addEventListener("click",function(e){
 
-if(!document.getElementById("blockInput").contains(e.target)){
+let input=document.getElementById("blockInput");
+let suggest=document.getElementById("blockSuggest");
 
-document.getElementById("blockSuggest").innerHTML="";
+if(!input.contains(e.target) && !suggest.contains(e.target)){
+
+suggest.innerHTML="";
 
 }
 
@@ -946,6 +949,7 @@ alert("Trình duyệt không hỗ trợ chia sẻ");
  
 </body>
 </html>
+
 
 
 
