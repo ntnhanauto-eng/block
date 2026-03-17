@@ -859,7 +859,7 @@ suggest.innerHTML="";
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getDatabase, ref, runTransaction, onValue, set, onDisconnect }
+import { getDatabase, ref, runTransaction, onValue, set, onDisconnect, push }
 from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
 const firebaseConfig = {
@@ -912,20 +912,25 @@ onValue(todayRef,(snapshot)=>{
 document.getElementById("todayCount").innerText = snapshot.val() || 0;
 });
 
-/* Người online */
+/* Người online - FIX CHUẨN */
 
-const userRef = ref(db,"online/"+Date.now());
-
-set(userRef,true);
-
-onDisconnect(userRef).remove();
+import { push } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
 const onlineRef = ref(db,"online");
 
-onValue(onlineRef,(snapshot)=>{
+/* tạo user online (không trùng key) */
+const userRef = push(onlineRef);
+
+set(userRef, true);
+
+/* tự xoá khi rời trang */
+onDisconnect(userRef).remove();
+
+/* đếm số user online */
+onValue(onlineRef, (snapshot) => {
 
 if(snapshot.exists()){
-document.getElementById("onlineCount").innerText = snapshot.size;
+document.getElementById("onlineCount").innerText = snapshot.numChildren();
 }else{
 document.getElementById("onlineCount").innerText = 0;
 }
