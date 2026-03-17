@@ -6,8 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <title>3D BLOCK</title>
- <link rel="preconnect" href="https://mobile3d.hmd.co.kr">
-<link rel="preload" href="app-icon.png" as="image">
+
  <link rel="manifest" href="manifest.json">
 
 <meta name="theme-color" content="#00cc44">
@@ -447,51 +446,14 @@ content:"";
 animation:dots 1s infinite steps(4);
 }
 
-.loading-dots::after{
-content:"...";
-animation:blink 1s infinite;
-}
-
-@keyframes blink{
-0%{opacity:0}
-50%{opacity:1}
-100%{opacity:0}
+@keyframes dots{
+0%{content:"";}
+25%{content:".";}
+50%{content:"...";}
+75%{content:".....";}
+100%{content:".......";}
 }
  
-
-.loader{
-transform:translateZ(0);
-}
-
- .splash-logo{
-animation:logoFade 1s ease;
-}
-
-@keyframes logoFade{
-
-0%{
-opacity:0;
-transform:scale(0.9);
-}
-
-100%{
-opacity:1;
-transform:scale(1);
-}
-
-}
-
-#onlineCount{
-animation:pulse 2s infinite;
-}
-
-@keyframes pulse{
-
-0%{opacity:1}
-50%{opacity:0.4}
-100%{opacity:1}
-
-}
  
 </style>
 
@@ -840,17 +802,13 @@ box.appendChild(div);
 
 document.addEventListener("click",function(e){
 
-let input=document.getElementById("blockInput");
-let suggest=document.getElementById("blockSuggest");
+if(!document.getElementById("blockInput").contains(e.target)){
 
-if(!input.contains(e.target) && !suggest.contains(e.target)){
-
-suggest.innerHTML="";
+document.getElementById("blockSuggest").innerHTML="";
 
 }
 
 });
-
 
  
 </script>
@@ -859,7 +817,7 @@ suggest.innerHTML="";
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getDatabase, ref, runTransaction, onValue, set, onDisconnect, push }
+import { getDatabase, ref, runTransaction, onValue, set, onDisconnect }
 from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
 const firebaseConfig = {
@@ -912,25 +870,20 @@ onValue(todayRef,(snapshot)=>{
 document.getElementById("todayCount").innerText = snapshot.val() || 0;
 });
 
-/* Người online - FIX CHUẨN */
+/* Người online */
 
-import { push } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+const userRef = ref(db,"online/"+Date.now());
+
+set(userRef,true);
+
+onDisconnect(userRef).remove();
 
 const onlineRef = ref(db,"online");
 
-/* tạo user online (không trùng key) */
-const userRef = push(onlineRef);
-
-set(userRef, true);
-
-/* tự xoá khi rời trang */
-onDisconnect(userRef).remove();
-
-/* đếm số user online */
-onValue(onlineRef, (snapshot) => {
+onValue(onlineRef,(snapshot)=>{
 
 if(snapshot.exists()){
-document.getElementById("onlineCount").innerText = snapshot.numChildren();
+document.getElementById("onlineCount").innerText = snapshot.size;
 }else{
 document.getElementById("onlineCount").innerText = 0;
 }
@@ -962,7 +915,9 @@ return /Android|iPhone|iPad|iPod|Opera Mini|IEMobile/i
 }
 
 if(!isMobile()){
-console.warn("Desktop mode");
+
+alert("⚠ Ứng dụng 3D BLOCK VIEWER hoạt động tốt nhất trên điện thoại.");
+
 }
 
 </script>
@@ -987,33 +942,7 @@ alert("Trình duyệt không hỗ trợ chia sẻ");
 
 }
 
- 
 </script>
  
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
