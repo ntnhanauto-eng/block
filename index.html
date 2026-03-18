@@ -464,6 +464,23 @@ animation:dots 1s infinite steps(4);
 .history-item:hover{
   background:#e0f7fa;
 }
+
+#historyList{
+  display:block;                /* vẫn hiển thị block nhưng ẩn bằng max-height */
+  max-height:0;                 /* mặc định ẩn */
+  overflow:hidden;
+  transition: max-height 0.4s ease;  /* hiệu ứng mượt */
+  background:#f9f9f9;
+  border:1px solid #ccc;
+  border-radius:6px;
+  padding:0 5px;                /* padding ngang vẫn giữ */
+}
+
+#historyList.open{
+  max-height:250px;             /* khi mở tối đa 250px */
+  padding:5px;
+}
+
  
 </style>
 
@@ -873,11 +890,11 @@ function renderHistory(){
   });
 }
 
-// toggle hiển thị
-document.getElementById("historyToggle").onclick=function(){
+// toggle hiển thị với hiệu ứng sổ danh sách
+document.getElementById("historyToggle").onclick = function() {
   const list = document.getElementById("historyList");
-  list.style.display = list.style.display==="none"?"block":"none";
-}
+  list.classList.toggle("open");
+};
 
 // mở 3D từ lịch sử
 function open3DFromHistory(ship, block){
