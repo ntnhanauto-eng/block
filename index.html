@@ -957,10 +957,12 @@ function updateGreeting() {
 
   if (hours >= 5 && hours < 12) {
     greetingText = "Chào buổi sáng 🌞";
-  } else if (hours >= 12 && hours < 15) {
-    greetingText = "Chào buổi trưa 🌤️";
+    if (hours >= 12 && hours < 15) {
+    greetingText = "Chào buổi trưa 🌞";
+  } else if (hours >= 15 && hours < 18) {
+    greetingText = "Chào buổi chiều 🌤️";
   } else {
-    greetingText = "Chào buổi chiều 🌙";
+    greetingText = "Chào buổi tối 🌙";
   }
 
   document.getElementById("greeting").innerText = greetingText;
