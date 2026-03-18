@@ -490,7 +490,6 @@ HD Hyundai Vietnam
 <label>Nhập Block</label>
 <input id="blockInput" placeholder="Ví dụ: E41P, 2E31, H12C...">
 <div id="blockSuggest"></div>
-<div id="currentBlockView" style="margin-top:12px; font-weight:bold; color:#1565c0;"></div>
 <div id="blockError" class="error-message">⚠ Vui lòng nhập Block</div>
 
  
@@ -573,22 +572,19 @@ const shipList = [
 
 let blockHistory = JSON.parse(localStorage.getItem("blockHistory")) || [];
  
-window.onload = function(){
-    var lastShip = localStorage.getItem("ship");
-    var lastBlock = localStorage.getItem("block");
-    var currentBlock = localStorage.getItem("currentBlock");
+window.onload=function(){
 
-    if(lastShip){
-        document.getElementById("shipInput").value = lastShip;
-    }
+var lastShip=localStorage.getItem("ship");
+var lastBlock=localStorage.getItem("block");
 
-    if(lastBlock){
-        document.getElementById("blockInput").value = lastBlock;
-    }
+if(lastShip){
+document.getElementById("shipInput").value=lastShip;
+}
 
-    if(currentBlock){
-        document.getElementById("currentBlockView").innerText = "Đang xem: " + currentBlock;
-    }
+if(lastBlock){
+document.getElementById("blockInput").value=lastBlock;
+}
+
 }
 
 document.getElementById("blockInput").addEventListener("input", function(){
@@ -647,12 +643,6 @@ return;
  
 localStorage.setItem("ship",ship);
 localStorage.setItem("block",block);
-
- // Lưu block hiện tại để hiển thị
-localStorage.setItem("currentBlock", block);
-
-// Cập nhật div hiển thị
-document.getElementById("currentBlockView").innerText = "Đang xem: " + block;
 
 /* lưu block vào lịch sử */
 
@@ -956,8 +946,5 @@ alert("Trình duyệt không hỗ trợ chia sẻ");
  
 </body>
 </html>
-
-
-
 
 
