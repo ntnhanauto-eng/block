@@ -465,7 +465,20 @@ animation:dots 1s infinite steps(4);
   background:#e0f7fa;
 }
  
+.history-date{
+  color:#666;
+  font-size:13px;
+}
 
+.history-ship{
+  color:#1e88e5;   /* xanh dương */
+  font-weight:bold;
+}
+
+.history-block{
+  color:#e53935;   /* đỏ */
+  font-weight:bold;
+}
  
 </style>
 
@@ -1026,7 +1039,11 @@ function renderHistory(){
   accessHistory.forEach((entry, index)=>{
     const div = document.createElement("div");
     div.className="history-item";
-    div.innerText=`${entry.date} ${entry.time} | ${entry.ship} | ${entry.block}`;
+    div.innerHTML = `
+  <span class="history-date">${entry.date} ${entry.time}</span><br>
+  🚢 <span class="history-ship">${entry.ship}</span> | 
+  📦 <span class="history-block">${entry.block}</span>
+`;
     div.onclick=function(){
       open3DFromHistory(entry.ship, entry.block);
     };
@@ -1103,6 +1120,9 @@ function open3D(){
     }
   },20);
 }
+
+
+
  
 </script>
  
