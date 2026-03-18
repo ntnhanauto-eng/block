@@ -514,12 +514,6 @@ HD Hyundai Vietnam
 </div>
 
 </div>
-
-<div class="history-container" style="width:90%; max-width:450px; margin:10px auto 5px auto; text-align:left; background:#fff8e1; border:1px solid #ffe08a; border-radius:8px; padding:10px; font-size:14px;">
-  <div style="font-weight:bold; color:#cc0000; margin-bottom:5px;">🕒 Lịch sử truy cập</div>
-  <div id="historyList"></div>
-</div>
- 
 <div class="share-mini" onclick="shareApp()">📤 Chia sẻ</div>
 <footer class="footer">
 
@@ -658,66 +652,6 @@ return;
 localStorage.setItem("ship",ship);
 localStorage.setItem("block",block);
 
-
-const accessHistory = JSON.parse(localStorage.getItem("accessHistory")) || [];
-
-// Lưu truy cập hiện tại
-accessHistory.unshift({
-  datetime: new Date().toLocaleString("vi-VN", { hour12:false }),
-  ship: ship,
-  block: block
-});
-
-// Giữ tối đa 10 mục
-if(accessHistory.length > 10) accessHistory.pop();
-
-localStorage.setItem("accessHistory", JSON.stringify(accessHistory));
-
-// Cập nhật hiển thị lịch sử
-renderHistory();
-
-function renderHistory(){
-  const list = document.getElementById("historyList");
-  const accessHistory = JSON.parse(localStorage.getItem("accessHistory")) || [];
-  list.innerHTML = "";
-
-  accessHistory.forEach((item, index)=>{
-    const div = document.createElement("div");
-    div.style.display="flex";
-    div.style.justifyContent="space-between";
-    div.style.alignItems="center";
-    div.style.padding="5px 0";
-    div.style.cursor="pointer";
-    div.style.borderBottom = "1px solid #ffe08a";
-
-    // Text hiển thị
-    div.innerHTML = `<span>${item.datetime} | ${item.ship} | ${item.block}</span><span style="color:red;">✖</span>`;
-
-    // Click vào mở lại
-    div.querySelector("span:first-child").onclick = function(){
-      document.getElementById("shipInput").value = item.ship;
-      document.getElementById("blockInput").value = item.block;
-      open3D();
-    };
-
-    // Xóa mục lịch sử
-    div.querySelector("span:last-child").onclick = function(e){
-      e.stopPropagation();
-      accessHistory.splice(index,1);
-      localStorage.setItem("accessHistory", JSON.stringify(accessHistory));
-      renderHistory();
-    };
-
-    list.appendChild(div);
-  });
-
-}
-
-// Cập nhật khi load trang
-renderHistory();
-
-
- 
 /* lưu block vào lịch sử */
 
 if(!blockHistory.includes(block)){
