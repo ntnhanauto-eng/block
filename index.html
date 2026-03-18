@@ -475,6 +475,12 @@ HD Hyundai Vietnam
 </div>
  
 <div class="header">
+
+<div class="greeting-container" style="width:100%; text-align:center; background:#e0f7fa; color:#00796b; padding:8px 0; font-size:16px; font-weight:500;">
+  <div id="greeting">Xin chào!</div>
+  <div id="currentDate" style="font-size:14px; color:#004d40; margin-top:2px;"></div>
+</div>
+ 
 3D BLOCK VIEWER
 </div>
 
@@ -942,6 +948,32 @@ alert("Trình duyệt không hỗ trợ chia sẻ");
 
 }
 
+function updateGreeting() {
+  const now = new Date();
+  const hours = now.getHours();
+  let greetingText = "Xin chào!";
+
+  if (hours >= 5 && hours < 12) {
+    greetingText = "Chào buổi sáng 🌞";
+  } else if (hours >= 12 && hours < 18) {
+    greetingText = "Chào buổi trưa 🌤️";
+  } else {
+    greetingText = "Chào buổi chiều 🌙";
+  }
+
+  document.getElementById("greeting").innerText = greetingText;
+
+  const day = now.getDate();
+  const month = now.getMonth() + 1; // JavaScript tháng từ 0-11
+  const year = now.getFullYear();
+
+  document.getElementById("currentDate").innerText = `Hôm nay, ngày ${day} tháng ${month} năm ${year}`;
+}
+
+// Cập nhật ngay khi mở web
+updateGreeting();
+
+ 
 </script>
  
 </body>
