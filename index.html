@@ -478,6 +478,16 @@ HD Hyundai Vietnam
 3D BLOCK VIEWER
 </div>
 
+<!-- Chào mừng người dùng -->
+<div id="welcomeMessage" style="
+  width:90%; max-width:450px; 
+  background:#e0f7fa; color:#00796b; 
+  border-radius:12px; padding:12px; 
+  text-align:center; margin-top:15px;
+  font-weight:bold; font-size:16px;">
+  Xin chào!
+</div>
+ 
 <div class="container">
 
 <label>Nhập tàu</label>
@@ -942,6 +952,32 @@ alert("Trình duyệt không hỗ trợ chia sẻ");
 
 }
 
+</script>
+
+
+<script>
+// Hàm nhận tên thiết bị
+function getDeviceName() {
+    const ua = navigator.userAgent || navigator.vendor || window.opera;
+    
+    // Kiểm tra các thiết bị di động phổ biến
+    if (/android/i.test(ua)) return "Android";
+    if (/iPad|iPhone|iPod/.test(ua) && !window.MSStream) return "iPhone/iPad";
+    
+    // Máy tính
+    if (/Win/i.test(ua)) return "Windows PC";
+    if (/Mac/i.test(ua)) return "Mac";
+    if (/Linux/i.test(ua)) return "Linux PC";
+    
+    return "Thiết bị của bạn";
+}
+
+// Hiển thị chào mừng
+window.addEventListener("load", function(){
+    const welcomeDiv = document.getElementById("welcomeMessage");
+    const deviceName = getDeviceName();
+    welcomeDiv.innerText = `Xin chào, ${deviceName}!`;
+});
 </script>
  
 </body>
