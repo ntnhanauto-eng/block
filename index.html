@@ -637,24 +637,7 @@ document.getElementById("blockInput").focus();
 });
 
 
-function open3D(){
 
-var ship=document.getElementById("shipInput").value.trim();
-var block=document.getElementById("blockInput").value.trim();
-var error=document.getElementById("shipError");
-var blockError=document.getElementById("blockError");
-
-if(ship.length !== 6){
-
-error.style.display="block";
-document.getElementById("shipInput").focus();
-
-setTimeout(function(){
-error.style.display="none";
-},3000);
-
-return;
-}
 
 if(block === ""){
 
@@ -842,83 +825,7 @@ document.getElementById("blockSuggest").innerHTML="";
 </script>
 
 
-<script type="module">
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getDatabase, ref, runTransaction, onValue, set, onDisconnect }
-from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
-
-const firebaseConfig = {
-
-apiKey: "AIzaSyCUeBoM7I6AD0YN9GFFumpokHbrIrxVjQg",
-authDomain: "block3d-232d2.firebaseapp.com",
-databaseURL: "https://block3d-232d2-default-rtdb.asia-southeast1.firebasedatabase.app",
-projectId: "block3d-232d2",
-storageBucket: "block3d-232d2.firebasestorage.app",
-messagingSenderId: "860040777410",
-appId: "1:860040777410:web:3e02c994ef7b9835b5b55b"
-
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);
-
-
-/* Tổng truy cập */
-
-const visitRef = ref(db,"visits");
-
-runTransaction(visitRef,(count)=>{
-return (count || 0) + 1;
-});
-
-onValue(visitRef,(snapshot)=>{
-document.getElementById("visitCount").innerText = snapshot.val() || 0;
-});
-
-
-/* Truy cập hôm nay */
-
-/* Truy cập hôm nay */
-
-const now = new Date();
-
-const today =
-now.getFullYear() + "-" +
-String(now.getMonth()+1).padStart(2,'0') + "-" +
-String(now.getDate()).padStart(2,'0');
-
-const todayRef = ref(db,"daily/"+today);
-
-runTransaction(todayRef,(count)=>{
-return (count || 0) + 1;
-});
-
-onValue(todayRef,(snapshot)=>{
-document.getElementById("todayCount").innerText = snapshot.val() || 0;
-});
-
-/* Người online */
-
-const userRef = ref(db,"online/"+Date.now());
-
-set(userRef,true);
-
-onDisconnect(userRef).remove();
-
-const onlineRef = ref(db,"online");
-
-onValue(onlineRef,(snapshot)=>{
-
-if(snapshot.exists()){
-document.getElementById("onlineCount").innerText = snapshot.size;
-}else{
-document.getElementById("onlineCount").innerText = 0;
-}
-
-});
-
-</script>
 
 <script>
 
@@ -1053,19 +960,7 @@ function open3DFromHistory(ship, block){
 accessHistory = JSON.parse(localStorage.getItem("accessHistory")) || [];
 renderHistory();
 
-// MỞ 3D bình thường cũng lưu vào lịch sử
-function open3D(){
-  var ship=document.getElementById("shipInput").value.trim();
-  var block=document.getElementById("blockInput").value.trim();
-  var error=document.getElementById("shipError");
-  var blockError=document.getElementById("blockError");
 
-  if(ship.length !== 6){
-    error.style.display="block";
-    document.getElementById("shipInput").focus();
-    setTimeout(function(){ error.style.display="none"; },3000);
-    return;
-  }
 
   if(block === ""){
     blockError.style.display="block";
@@ -1103,7 +998,194 @@ function open3D(){
     }
   },20);
 }
- 
+
+ <!-- GIỮ NGUYÊN TOÀN BỘ HTML + CSS CỦA BẠN -->
+<!-- CHỈ QUAN TÂM PHẦN SCRIPT DƯỚI ĐÂY -->
+
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getDatabase, ref, runTransaction, onValue, set, onDisconnect, push }
+from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+/* FIREBASE CONFIG */
+const firebaseConfig = {
+apiKey: "AIzaSyCUeBoM7I6AD0YN9GFFumpokHbrIrxVjQg",
+authDomain: "block3d-232d2.firebaseapp.com",
+databaseURL: "https://block3d-232d2-default-rtdb.asia-southeast1.firebasedatabase.app",
+projectId: "block3d-232d2",
+storageBucket: "block3d-232d2.firebasestorage.app",
+messagingSenderId: "860040777410",
+appId: "1:860040777410:web:3e02c994ef7b9835b5b55b"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+/* =========================
+   COUNTER
+========================= */
+
+/* TOTAL */
+const visitRef = ref(db,"visits");
+runTransaction(visitRef,(count)=> (count || 0) + 1);
+
+onValue(visitRef,(snapshot)=>{
+document.getElementById("visitCount").innerText = snapshot.val() || 0;
+});
+
+/* TODAY */
+const now = new Date();
+const today =
+now.getFullYear() + "-" +
+String(now.getMonth()+1).padStart(2,'0') + "-" +
+String(now.getDate()).padStart(2,'0');
+
+const todayRef = ref(db,"daily/"+today);
+
+runTransaction(todayRef,(count)=> (count || 0) + 1);
+
+onValue(todayRef,(snapshot)=>{
+document.getElementById("todayCount").innerText = snapshot.val() || 0;
+});
+
+/* ONLINE */
+const userRef = ref(db,"online/"+Date.now());
+set(userRef,true);
+onDisconnect(userRef).remove();
+
+const onlineRef = ref(db,"online");
+
+onValue(onlineRef,(snapshot)=>{
+document.getElementById("onlineCount").innerText =
+snapshot.exists() ? snapshot.size : 0;
+});
+
+/* =========================
+   🔥 LỊCH SỬ TOÀN CÔNG TY
+========================= */
+
+/* LƯU LỊCH SỬ */
+function addAccessHistory(ship, block){
+
+const now = new Date();
+
+const entry = {
+date: now.toLocaleDateString('vi-VN'),
+time: now.toLocaleTimeString('vi-VN',{hour12:false}),
+ship: ship,
+block: block,
+timestamp: Date.now()
+};
+
+push(ref(db,"history"), entry);
+
+}
+
+/* HIỂN THỊ REALTIME */
+const historyRef = ref(db,"history");
+
+onValue(historyRef, (snapshot)=>{
+
+const historyList = document.getElementById("historyList");
+historyList.innerHTML = "";
+
+let data = [];
+
+snapshot.forEach(child=>{
+data.push(child.val());
+});
+
+/* sort mới nhất */
+data.sort((a,b)=>b.timestamp - a.timestamp);
+
+/* giới hạn 20 */
+data.slice(0,20).forEach(entry=>{
+
+const div = document.createElement("div");
+div.className="history-item";
+
+div.innerHTML =
+`${entry.date} ${entry.time} | 🚢 ${entry.ship} | 📦 ${entry.block}`;
+
+div.onclick = function(){
+open3DFromHistory(entry.ship, entry.block);
+};
+
+historyList.appendChild(div);
+
+});
+
+});
+
+/* MỞ LẠI */
+window.open3DFromHistory = function(ship, block){
+localStorage.setItem("ship", ship);
+localStorage.setItem("block", block);
+
+window.location.href =
+"https://mobile3d.hmd.co.kr:8087/VIZWide3D/OutfitMobile3dhttps.html?ship="+ship+"&block="+block;
+};
+
+/* =========================
+   OPEN 3D (CHỈ GIỮ 1 HÀM)
+========================= */
+
+window.open3D = function(){
+
+var ship=document.getElementById("shipInput").value.trim();
+var block=document.getElementById("blockInput").value.trim();
+
+var error=document.getElementById("shipError");
+var blockError=document.getElementById("blockError");
+
+if(ship.length !== 6){
+error.style.display="block";
+setTimeout(()=>error.style.display="none",3000);
+return;
+}
+
+if(block === ""){
+blockError.style.display="block";
+setTimeout(()=>blockError.style.display="none",3000);
+return;
+}
+
+/* lưu local */
+localStorage.setItem("ship",ship);
+localStorage.setItem("block",block);
+
+/* 🔥 LƯU FIREBASE */
+addAccessHistory(ship, block);
+
+/* loading */
+var progress=document.getElementById("progressBar");
+var text=document.getElementById("btnText");
+
+text.innerHTML="Đang mở 3D...";
+document.getElementById("startBtn").disabled=true;
+
+var width=0;
+
+var interval=setInterval(function(){
+
+width+=2;
+progress.style.width=width+"%";
+
+if(width>=100){
+
+clearInterval(interval);
+
+window.location.href =
+"https://mobile3d.hmd.co.kr:8087/VIZWide3D/OutfitMobile3dhttps.html?ship="+ship+"&block="+block;
+
+}
+
+},20);
+
+};
+
+</script>
 </script>
  
 </body>
