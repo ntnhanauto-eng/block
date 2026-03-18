@@ -810,6 +810,7 @@ document.getElementById("blockSuggest").innerHTML="";
 
 });
 
+
  
 </script>
 
@@ -835,6 +836,22 @@ appId: "1:860040777410:web:3e02c994ef7b9835b5b55b"
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
+ // ==== ONLINE USERS =====
+const onlineRef = ref(db, "online");   // node chính cho online
+
+// Tạo child node duy nhất cho user hiện tại
+const userRef = push(onlineRef);
+set(userRef, true);
+
+// Khi user đóng tab / reload → remove node
+onDisconnect(userRef).remove();
+
+// Lắng nghe sự thay đổi của node "online"
+onValue(onlineRef, (snapshot) => {
+    let count = 0;
+    snapshot.forEach(() => count++); // đếm tất cả node con
+    document.getElementById("onlineCount").innerText = count;
+});
 
 /* Tổng truy cập */
 
@@ -870,24 +887,17 @@ onValue(todayRef,(snapshot)=>{
 document.getElementById("todayCount").innerText = snapshot.val() || 0;
 });
 
-/* Người online */
-
-const userRef = ref(db,"online/"+Date.now());
-
-set(userRef,true);
-
+ 
+/* nguoi online */
+const onlineRef = ref(db, "online");
+const userRef = push(onlineRef);
+set(userRef, true);
 onDisconnect(userRef).remove();
 
-const onlineRef = ref(db,"online");
-
-onValue(onlineRef,(snapshot)=>{
-
-if(snapshot.exists()){
-document.getElementById("onlineCount").innerText = snapshot.size;
-}else{
-document.getElementById("onlineCount").innerText = 0;
-}
-
+onValue(onlineRef, (snapshot) => {
+    let count = 0;
+    snapshot.forEach(() => count++);
+    document.getElementById("onlineCount").innerText = count;
 });
 
 </script>
