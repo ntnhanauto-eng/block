@@ -453,7 +453,7 @@ animation:dots 1s infinite steps(4);
 75%{content:".....";}
 100%{content:".......";}
 }
- 
+
 .history-item{
   padding:8px;
   border-bottom:1px solid #eee;
@@ -464,22 +464,7 @@ animation:dots 1s infinite steps(4);
 .history-item:hover{
   background:#e0f7fa;
 }
-
-#historyList{
-  display:block;                /* vẫn hiển thị block nhưng ẩn bằng max-height */
-  max-height:0;                 /* mặc định ẩn */
-  overflow:hidden;
-  transition: max-height 0.4s ease;  /* hiệu ứng mượt */
-  background:#f9f9f9;
-  border:1px solid #ccc;
-  border-radius:6px;
-  padding:0 5px;                /* padding ngang vẫn giữ */
-}
-
-#historyList.open{
-  max-height:250px;             /* khi mở tối đa 250px */
-  padding:5px;
-}
+ 
 
  
 </style>
@@ -541,6 +526,7 @@ HD Hyundai Vietnam
 </div>
 
 </div>
+
 <div class="history-container" style="width:100%; text-align:left; margin-top:10px;">
   <div id="historyToggle" style="font-size:15px; color:#0077cc; cursor:pointer; margin-bottom:5px;">
     📜 Lịch sử truy cập
@@ -852,113 +838,6 @@ document.getElementById("blockSuggest").innerHTML="";
 
 });
 
-
- // LỊCH SỬ TRUY CẬP
-let accessHistory = JSON.parse(localStorage.getItem("accessHistory")) || [];
-
-function addAccessHistory(ship, block){
-  const now = new Date();
-  const date = now.toLocaleDateString('vi-VN');
-  const time = now.toLocaleTimeString('vi-VN',{hour12:false});
-
-  const entry = {date, time, ship, block};
-
-  // tránh trùng lặp
-  accessHistory = accessHistory.filter(e=>!(e.ship===ship && e.block===block));
-
-  accessHistory.unshift(entry);
-
-  if(accessHistory.length>10){
-    accessHistory.pop();
-  }
-
-  localStorage.setItem("accessHistory", JSON.stringify(accessHistory));
-  renderHistory();
-}
-
-function renderHistory(){
-  const historyList = document.getElementById("historyList");
-  historyList.innerHTML="";
-  accessHistory.forEach((entry, index)=>{
-    const div = document.createElement("div");
-    div.className="history-item";
-    div.innerText=`${entry.date} ${entry.time} | ${entry.ship} | ${entry.block}`;
-    div.onclick=function(){
-      open3DFromHistory(entry.ship, entry.block);
-    };
-    historyList.appendChild(div);
-  });
-}
-
-// toggle hiển thị
-document.getElementById("historyToggle").onclick = function() {
-  const list = document.getElementById("historyList");
-  list.classList.toggle("open");
-};
-
-// mở 3D từ lịch sử
-function open3DFromHistory(ship, block){
-  localStorage.setItem("ship", ship);
-  localStorage.setItem("block", block);
-
-  var url="https://mobile3d.hmd.co.kr:8087/VIZWide3D/OutfitMobile3dhttps.html?ship="+ship+"&block="+block;
-  window.location.href=url;
-}
-
-// render ngay khi load
-accessHistory = JSON.parse(localStorage.getItem("accessHistory")) || [];
-renderHistory();
-
-// MỞ 3D bình thường cũng lưu vào lịch sử
-function open3D(){
-  var ship=document.getElementById("shipInput").value.trim();
-  var block=document.getElementById("blockInput").value.trim();
-  var error=document.getElementById("shipError");
-  var blockError=document.getElementById("blockError");
-
-  if(ship.length !== 6){
-    error.style.display="block";
-    document.getElementById("shipInput").focus();
-    setTimeout(function(){ error.style.display="none"; },3000);
-    return;
-  }
-
-  if(block === ""){
-    blockError.style.display="block";
-    document.getElementById("blockInput").focus();
-    setTimeout(function(){ blockError.style.display="none"; },3000);
-    return;
-  }
-
-  localStorage.setItem("ship",ship);
-  localStorage.setItem("block",block);
-
-  // lưu block vào lịch sử block
-  if(!blockHistory.includes(block)){
-    blockHistory.unshift(block);
-    if(blockHistory.length > 10) blockHistory.pop();
-    localStorage.setItem("blockHistory",JSON.stringify(blockHistory));
-  }
-
-  // ✅ lưu vào lịch sử truy cập
-  addAccessHistory(ship, block);
-
-  var progress=document.getElementById("progressBar");
-  var text=document.getElementById("btnText");
-  text.innerHTML="Đang mở 3D<span class='loading-dots'></span>";
-  document.getElementById("startBtn").disabled=true;
-  var width=0;
-
-  var interval=setInterval(function(){
-    width+=2;
-    progress.style.width=width+"%";
-    if(width>=100){
-      clearInterval(interval);
-      var url="https://mobile3d.hmd.co.kr:8087/VIZWide3D/OutfitMobile3dhttps.html?ship="+ship+"&block="+block;
-      window.location.href=url;
-    }
-  },20);
-}
  
 </script>
 
@@ -1118,6 +997,112 @@ function updateGreeting() {
 // Cập nhật ngay khi mở web
 updateGreeting();
 
+// LỊCH SỬ TRUY CẬP
+let accessHistory = JSON.parse(localStorage.getItem("accessHistory")) || [];
+
+function addAccessHistory(ship, block){
+  const now = new Date();
+  const date = now.toLocaleDateString('vi-VN');
+  const time = now.toLocaleTimeString('vi-VN',{hour12:false});
+
+  const entry = {date, time, ship, block};
+
+  // tránh trùng lặp
+  accessHistory = accessHistory.filter(e=>!(e.ship===ship && e.block===block));
+
+  accessHistory.unshift(entry);
+
+  if(accessHistory.length>10){
+    accessHistory.pop();
+  }
+
+  localStorage.setItem("accessHistory", JSON.stringify(accessHistory));
+  renderHistory();
+}
+
+function renderHistory(){
+  const historyList = document.getElementById("historyList");
+  historyList.innerHTML="";
+  accessHistory.forEach((entry, index)=>{
+    const div = document.createElement("div");
+    div.className="history-item";
+    div.innerText=`${entry.date} ${entry.time} | ${entry.ship} | ${entry.block}`;
+    div.onclick=function(){
+      open3DFromHistory(entry.ship, entry.block);
+    };
+    historyList.appendChild(div);
+  });
+}
+
+// toggle hiển thị
+document.getElementById("historyToggle").onclick=function(){
+  const list = document.getElementById("historyList");
+  list.style.display = list.style.display==="none"?"block":"none";
+}
+
+// mở 3D từ lịch sử
+function open3DFromHistory(ship, block){
+  localStorage.setItem("ship", ship);
+  localStorage.setItem("block", block);
+
+  var url="https://mobile3d.hmd.co.kr:8087/VIZWide3D/OutfitMobile3dhttps.html?ship="+ship+"&block="+block;
+  window.location.href=url;
+}
+
+// render ngay khi load
+accessHistory = JSON.parse(localStorage.getItem("accessHistory")) || [];
+renderHistory();
+
+// MỞ 3D bình thường cũng lưu vào lịch sử
+function open3D(){
+  var ship=document.getElementById("shipInput").value.trim();
+  var block=document.getElementById("blockInput").value.trim();
+  var error=document.getElementById("shipError");
+  var blockError=document.getElementById("blockError");
+
+  if(ship.length !== 6){
+    error.style.display="block";
+    document.getElementById("shipInput").focus();
+    setTimeout(function(){ error.style.display="none"; },3000);
+    return;
+  }
+
+  if(block === ""){
+    blockError.style.display="block";
+    document.getElementById("blockInput").focus();
+    setTimeout(function(){ blockError.style.display="none"; },3000);
+    return;
+  }
+
+  localStorage.setItem("ship",ship);
+  localStorage.setItem("block",block);
+
+  // lưu block vào lịch sử block
+  if(!blockHistory.includes(block)){
+    blockHistory.unshift(block);
+    if(blockHistory.length > 10) blockHistory.pop();
+    localStorage.setItem("blockHistory",JSON.stringify(blockHistory));
+  }
+
+  // ✅ lưu vào lịch sử truy cập
+  addAccessHistory(ship, block);
+
+  var progress=document.getElementById("progressBar");
+  var text=document.getElementById("btnText");
+  text.innerHTML="Đang mở 3D<span class='loading-dots'></span>";
+  document.getElementById("startBtn").disabled=true;
+  var width=0;
+
+  var interval=setInterval(function(){
+    width+=2;
+    progress.style.width=width+"%";
+    if(width>=100){
+      clearInterval(interval);
+      var url="https://mobile3d.hmd.co.kr:8087/VIZWide3D/OutfitMobile3dhttps.html?ship="+ship+"&block="+block;
+      window.location.href=url;
+    }
+  },20);
+}
  
 </script>
  
