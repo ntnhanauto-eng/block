@@ -975,9 +975,9 @@ function updateGreeting() {
   const hours = now.getHours();
   let greetingText = "Xin chào!";
 
-  if (hours >= 3 && hours < 12) {
+  if (hours >= 3 && hours < 10) {
     greetingText = "Chào buổi sáng 🌞";}
-    if (hours >= 12 && hours < 15) {
+    if (hours >= 10 && hours < 15) {
     greetingText = "Chào buổi trưa 🌞";
   } else if (hours >= 15 && hours < 18) {
     greetingText = "Chào buổi chiều 🌤️";
