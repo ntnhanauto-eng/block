@@ -988,8 +988,8 @@ function updateGreeting() {
   return greetingText;
 }
 
-  document.getElementById("greeting").innerText = greetingText;
- }
+// dùng đúng cách:
+document.getElementById("greeting").innerText = updateGreeting();
 
   const day = now.getDate();
   const month = now.getMonth() + 1; // JavaScript tháng từ 0-11
