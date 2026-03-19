@@ -976,8 +976,8 @@ function updateGreeting() {
   let greetingText = "Xin chào!";
 
   if (hours >= 3 && hours < 10) {
-    greetingText = "Chào buổi sáng 🌞";
-  } else if (hours >= 10 && hours < 15) {
+    greetingText = "Chào buổi sáng 🌞";}
+    if (hours >= 10 && hours < 15) {
     greetingText = "Chào buổi trưa 🌞";
   } else if (hours >= 15 && hours < 18) {
     greetingText = "Chào buổi chiều 🌤️";
@@ -985,11 +985,7 @@ function updateGreeting() {
     greetingText = "Chào buổi tối 🌙";
   }
 
-  return greetingText;
-}
-
-// dùng đúng cách:
-document.getElementById("greeting").innerText = updateGreeting();
+  document.getElementById("greeting").innerText = greetingText;
 
   const day = now.getDate();
   const month = now.getMonth() + 1; // JavaScript tháng từ 0-11
