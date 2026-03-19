@@ -976,14 +976,17 @@ function updateGreeting() {
   let greetingText = "Xin chào!";
 
   if (hours >= 3 && hours < 10) {
-    greetingText = "Chào buổi sáng 🌞";}
-    if (hours >= 10 && hours < 15) {
+    greetingText = "Chào buổi sáng 🌞";
+  } else if (hours >= 10 && hours < 15) {
     greetingText = "Chào buổi trưa 🌞";
   } else if (hours >= 15 && hours < 18) {
     greetingText = "Chào buổi chiều 🌤️";
   } else {
     greetingText = "Chào buổi tối 🌙";
   }
+
+  return greetingText;
+}
 
   document.getElementById("greeting").innerText = greetingText;
 
