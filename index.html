@@ -495,6 +495,9 @@ HD Hyundai Vietnam
 <div class="greeting-container" style="width:100%; text-align:center; background:#f2f2f2; color:#00796b; padding:8px 0; font-size:16px; font-weight:500;">
   <div id="greeting">Xin chào!</div>
   <div id="currentDate" style="font-size:14px; color:#004d40; margin-top:2px;"></div>
+ <div id="locationText" style="font-size:13px; color:#00695c; margin-top:2px;">
+📍 Đang lấy vị trí...
+</div>
 </div>
 <div class="container">
  
@@ -1102,6 +1105,52 @@ function open3D(){
     }
   },20);
 }
+
+function getLocation(){
+
+  if(!navigator.geolocation){
+    document.getElementById("locationText").innerText = "⚠ Không hỗ trợ GPS";
+    return;
+  }
+
+  navigator.geolocation.getCurrentPosition(success, error);
+
+}
+
+function success(position){
+
+  const lat = position.coords.latitude;
+  const lon = position.coords.longitude;
+
+  // Gọi API OpenStreetMap
+  fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&addressdetails=1`)
+  .then(res => res.json())
+  .then(data => {
+
+    const addr = data.address;
+
+    const village = addr.village || addr.hamlet || "";
+    const ward = addr.suburb || addr.city_district || addr.town || "";
+    const province = addr.state || addr.city || "";
+
+    const fullAddress = `${village}, ${ward}, ${province}`;
+
+    document.getElementById("locationText").innerText = "📍 " + fullAddress;
+
+  })
+  .catch(()=>{
+    document.getElementById("locationText").innerText = "⚠ Không lấy được địa chỉ";
+  });
+
+}
+
+function error(){
+  document.getElementById("locationText").innerText = "⚠ Bạn chưa bật vị trí";
+}
+
+// gọi khi load
+getLocation();
+
  
 </script>
  
