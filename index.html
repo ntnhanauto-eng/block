@@ -1133,8 +1133,7 @@ function success(position){
     const ward = addr.suburb || addr.city_district || addr.town || "";
     const province = addr.state || addr.city || "";
 
-    const parts = [village, ward, province].filter(Boolean);
-const fullAddress = parts.join(" ");
+   const fullAddress = `${village}, ${ward}, ${province}`;
 
     document.getElementById("locationText").innerText = "📍 " + fullAddress;
 
