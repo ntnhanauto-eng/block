@@ -569,31 +569,10 @@ HD Hyundai Vietnam
 <div class="counter-number">📊 <span id="visitCount">0</span></div>
 </div>
 
-
-
-
-
-
-
- 
 </div>
 
 </div>
-<div class="counter-wrapper">
-  <div class="counter">
 
-    <div class="counter-box">
-      <div class="counter-title">🚢 TOP TÀU</div>
-      <div id="topShips" class="counter-number">-</div>
-    </div>
-
-    <div class="counter-box">
-      <div class="counter-title">🧱 TOP BLOCK</div>
-      <div id="topBlocks" class="counter-number">-</div>
-    </div>
-
-  </div>
-</div>
 </footer>
 
 
@@ -1110,22 +1089,6 @@ function open3D(){
   // ✅ lưu vào lịch sử truy cập
   addAccessHistory(ship, block);
 
-import { ref, runTransaction } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
-
-// cập nhật thống kê tàu
-const shipStatRef = ref(db, "stats/ships/" + ship);
-runTransaction(shipStatRef, (count) => {
-  return (count || 0) + 1;
-});
-
-// cập nhật thống kê block
-const blockStatRef = ref(db, "stats/blocks/" + block);
-runTransaction(blockStatRef, (count) => {
-  return (count || 0) + 1;
-});
-
-
- 
   var progress=document.getElementById("progressBar");
   var text=document.getElementById("btnText");
   text.innerHTML="Đang mở 3D<span class='loading-dots'></span>";
@@ -1187,40 +1150,6 @@ function error(){
 
 // gọi khi load
 getLocation();
-
-import { onValue } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
-
-// TOP SHIPS
-const shipsRef = ref(db, "stats/ships");
-
-onValue(shipsRef, (snapshot) => {
-  if (!snapshot.exists()) return;
-
-  const data = snapshot.val();
-
-  const sorted = Object.entries(data)
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 3);
-
-  document.getElementById("topShips").innerHTML =
-    sorted.map(item => `${item[0]} (${item[1]})`).join("<br>");
-});
-
-// TOP BLOCKS
-const blocksRef = ref(db, "stats/blocks");
-
-onValue(blocksRef, (snapshot) => {
-  if (!snapshot.exists()) return;
-
-  const data = snapshot.val();
-
-  const sorted = Object.entries(data)
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 3);
-
-  document.getElementById("topBlocks").innerHTML =
-    sorted.map(item => `${item[0]} (${item[1]})`).join("<br>");
-});
 
  
 </script>
