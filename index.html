@@ -848,7 +848,7 @@ document.getElementById("blockSuggest").innerHTML="";
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getDatabase, ref, runTransaction, onValue, set, onDisconnect, push }
+import { getDatabase, ref, runTransaction, onValue, set, onDisconnect }
 from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
 const firebaseConfig = {
@@ -866,41 +866,6 @@ appId: "1:860040777410:web:3e02c994ef7b9835b5b55b"
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
- const historyRef = ref(db, "history");
-
-onValue(historyRef, (snapshot) => {
-
-  const historyList = document.getElementById("historyList");
-  historyList.innerHTML = "";
-
-  if(!snapshot.exists()) return;
-
-  let data = [];
-
-  snapshot.forEach(child => {
-    data.push(child.val());
-  });
-
-  // Sắp xếp mới nhất lên đầu
-  data.sort((a,b)=>b.timestamp - a.timestamp);
-
-  // chỉ lấy 10 cái mới nhất
-  data.slice(0,10).forEach(entry => {
-
-    const div = document.createElement("div");
-    div.className = "history-item";
-
-    div.innerText = `${entry.time} | ${entry.ship} | ${entry.block}`;
-
-    div.onclick = function(){
-      open3DFromHistory(entry.ship, entry.block);
-    };
-
-    historyList.appendChild(div);
-
-  });
-
-});
 
 /* Tổng truy cập */
 
@@ -1034,45 +999,15 @@ function updateGreeting() {
 // Cập nhật ngay khi mở web
 updateGreeting();
 
+// LỊCH SỬ TRUY CẬP
+let accessHistory = JSON.parse(localStorage.getItem("accessHistory")) || [];
 
 function addAccessHistory(ship, block){
-
   const now = new Date();
+  const date = now.toLocaleDateString('vi-VN');
+  const time = now.toLocaleTimeString('vi-VN',{hour12:false});
 
-  const entry = {
-    ship: ship,
-    block: block,
-    time: now.toLocaleString('vi-VN'),
-    timestamp: Date.now()
-  };
-
-  const historyRef = ref(db, "history");
-
-  push(historyRef, entry);
-
-const historyRef = ref(db, "history");
-
-onValue(historyRef, (snapshot) => {
-
-  if(snapshot.size > 100){
-
-    let count = 0;
-
-    snapshot.forEach(child => {
-
-      if(count < snapshot.size - 100){
-        child.ref.remove();
-      }
-
-      count++;
-
-    });
-
-  }
-
-});
- 
-}
+  const entry = {date, time, ship, block};
 
   // tránh trùng lặp
   accessHistory = accessHistory.filter(e=>!(e.ship===ship && e.block===block));
@@ -1083,7 +1018,23 @@ onValue(historyRef, (snapshot) => {
     accessHistory.pop();
   }
 
- 
+  localStorage.setItem("accessHistory", JSON.stringify(accessHistory));
+  renderHistory();
+}
+
+function renderHistory(){
+  const historyList = document.getElementById("historyList");
+  historyList.innerHTML="";
+  accessHistory.forEach((entry, index)=>{
+    const div = document.createElement("div");
+    div.className="history-item";
+    div.innerText=`${entry.date} ${entry.time} | ${entry.ship} | ${entry.block}`;
+    div.onclick=function(){
+      open3DFromHistory(entry.ship, entry.block);
+    };
+    historyList.appendChild(div);
+  });
+}
 
 // toggle hiển thị
 document.getElementById("historyToggle").onclick=function(){
@@ -1199,7 +1150,6 @@ function error(){
 
 // gọi khi load
 getLocation();
-
 
  
 </script>
