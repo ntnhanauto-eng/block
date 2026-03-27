@@ -1129,20 +1129,27 @@ function success(position){
 
     const addr = data.address;
 
-    const village = addr.village || addr.hamlet || "";
-    const ward = addr.suburb || addr.city_district || addr.town || "";
-    const province = addr.state || addr.city || "";
+    const hamlet = addr.hamlet || ""; // thôn
+const village = addr.village || ""; // làng/xã nhỏ
+const commune = addr.commune || ""; // xã
+const ward = addr.suburb || addr.city_district || addr.town || ""; // phường
+const district = addr.county || addr.district || ""; // huyện
+const province = addr.state || addr.city || ""; // tỉnh
 
-   const fullAddress = `${village}, ${ward}, ${province}`;
+// Ưu tiên hiển thị đúng cấp hành chính VN
+let parts = [];
 
-    document.getElementById("locationText").innerText = "📍 " + fullAddress;
+if (hamlet) parts.push(hamlet);
+else if (village) parts.push(village);
 
-  })
-  .catch(()=>{
-    document.getElementById("locationText").innerText = "⚠ Không lấy được địa chỉ";
-  });
+if (commune) parts.push(commune);
+else if (ward) parts.push(ward);
 
-}
+if (district) parts.push(district);
+
+if (province) parts.push(province);
+
+const fullAddress = parts.join(", ");
 
 function error(){
   document.getElementById("locationText").innerText = "⚠ Bạn chưa bật vị trí";
