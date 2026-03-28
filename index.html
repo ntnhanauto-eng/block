@@ -1128,18 +1128,40 @@ function success(position){
 
     const addr = data.address;
 
-    // Ưu tiên theo cấp hành chính Việt Nam
-    const hamlet   = addr.hamlet || addr.village || "";              // thôn / xóm
-    const ward     = addr.suburb || addr.city_district || addr.town || addr.village || ""; // xã/phường
-    const district = addr.county || addr.city_district || "";        // quận/huyện
-    const province = addr.state || addr.city || "";                  // tỉnh/thành
+    // 🇻🇳 Việt Nam
+    const vn_hamlet   = addr.hamlet || addr.village;
+    const vn_ward     = addr.suburb || addr.city_district || addr.town;
+    const vn_district = addr.county;
+    const vn_province = addr.state || addr.city;
 
-    // build địa chỉ (lọc phần rỗng)
-    const parts = [hamlet, ward, district, province].filter(Boolean);
+    // 🇰🇷 Hàn Quốc
+    const kr_dong     = addr.neighbourhood || addr.quarter;
+    const kr_gu       = addr.borough || addr.city_district;
+    const kr_city     = addr.city || addr.province;
 
-    const fullAddress = parts.join(", ");
+    // Ưu tiên theo quốc gia
+    let parts = [];
 
-    document.getElementById("locationText").innerText = "📍 " + fullAddress;
+    if(addr.country_code === "vn"){
+      parts = [vn_hamlet, vn_ward, vn_district, vn_province];
+    } 
+    else if(addr.country_code === "kr"){
+      parts = [kr_dong, kr_gu, kr_city];
+    }
+    else{
+      // fallback quốc tế
+      parts = [
+        addr.neighbourhood,
+        addr.suburb,
+        addr.city,
+        addr.state
+      ];
+    }
+
+    const fullAddress = parts.filter(Boolean).join(", ");
+
+    document.getElementById("locationText").innerText =
+      fullAddress ? "📍 " + fullAddress : "📍 Không xác định";
 
   })
   .catch(()=>{
