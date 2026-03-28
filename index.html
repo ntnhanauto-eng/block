@@ -1117,9 +1117,72 @@ function getLocation(){
   }
 
   navigator.geolocation.getCurrentPosition(success, error);
+}
+
+function success(position){
+
+  const lat = position.coords.latitude;
+  const lon = position.coords.longitude;
+
+  fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&addressdetails=1`,{
+    headers:{
+      "User-Agent":"3DBlockViewer/1.0"
+    }
+  })
+  .then(res => res.json())
+  .then(data => {
+
+    const addr = data.address;
+
+    // 🇻🇳
+    const vn = [
+      addr.hamlet || addr.village,
+      addr.suburb || addr.city_district || addr.town,
+      addr.county,
+      addr.state || addr.city
+    ];
+
+    // 🇰🇷 (FIX CHUẨN)
+    const kr = [
+      addr.suburb || addr.neighbourhood,
+      addr.city_district || addr.borough,
+      addr.city || addr.province || addr.state
+    ];
+
+    let parts = [];
+
+    if(addr.country_code === "vn"){
+      parts = vn;
+    } else if(addr.country_code === "kr"){
+      parts = kr;
+    } else {
+      parts = [
+        addr.neighbourhood,
+        addr.suburb,
+        addr.city,
+        addr.state
+      ];
+    }
+
+    const fullAddress = parts.filter(Boolean).join(", ");
+
+    document.getElementById("locationText").innerText =
+      fullAddress ? "📍 " + fullAddress : "📍 Không xác định";
+
+    // cache
+    localStorage.setItem("lastLocation", fullAddress);
+
+  })
+  .catch(()=>{
+    document.getElementById("locationText").innerText = "⚠ Không lấy được địa chỉ";
+  });
 
 }
 
+function error(){
+  document.getElementById("locationText").innerText =
+    "⚠ Vui lòng bật GPS để hiển thị vị trí";
+}
 function success(position){
 
   const lat = position.coords.latitude;
