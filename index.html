@@ -1122,18 +1122,22 @@ function success(position){
   const lat = position.coords.latitude;
   const lon = position.coords.longitude;
 
-  // Gọi API OpenStreetMap
   fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&addressdetails=1`)
   .then(res => res.json())
   .then(data => {
 
     const addr = data.address;
 
-    const village = addr.village || addr.hamlet || "";
-    const ward = addr.suburb || addr.city_district || addr.town || "";
-    const province = addr.state || addr.city || "";
+    // Ưu tiên theo cấp hành chính Việt Nam
+    const hamlet   = addr.hamlet || addr.village || "";              // thôn / xóm
+    const ward     = addr.suburb || addr.city_district || addr.town || addr.village || ""; // xã/phường
+    const district = addr.county || addr.city_district || "";        // quận/huyện
+    const province = addr.state || addr.city || "";                  // tỉnh/thành
 
-   const fullAddress = `${village}, ${ward}, ${province}`;
+    // build địa chỉ (lọc phần rỗng)
+    const parts = [hamlet, ward, district, province].filter(Boolean);
+
+    const fullAddress = parts.join(", ");
 
     document.getElementById("locationText").innerText = "📍 " + fullAddress;
 
