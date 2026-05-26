@@ -1,0 +1,36 @@
+-- 1. Bảng lưu tài khoản (Mật khẩu được mã hóa chuẩn bằng password_hash)
+CREATE TABLE IF NOT EXISTS `users` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `username` VARCHAR(50) NOT NULL UNIQUE,
+  `password` VARCHAR(255) NOT NULL,
+  `role` ENUM('admin', 'staff') DEFAULT 'staff'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Nạp tài khoản mẫu (Mật khẩu đăng nhập thật là: 123456)
+INSERT INTO `users` (username, password, role) VALUES 
+('admin', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'admin'),
+('nhanvien', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'staff');
+
+-- 2. Bảng lưu danh sách 3 phòng và mã thiết bị Tuya
+CREATE TABLE IF NOT EXISTS `rooms` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `room_name` VARCHAR(50) NOT NULL,
+  `device_id` VARCHAR(50) NOT NULL,
+  `status` ENUM('trong', 'khach', 've_sinh') DEFAULT 'trong'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Nạp 3 phòng mẫu (Hãy thay mã 'eb8f...' bằng Device ID thật bạn lấy từ Tuya IoT)
+INSERT INTO `rooms` (room_name, device_id, status) VALUES 
+('Phòng 101', 'MÃ_CẢM_BIẾN_CỬA_PHÒNG_101', 'trong'),
+('Phòng 102', 'MÃ_CẢM_BIẾN_CỬA_PHÒNG_102', 'trong'),
+('Phòng 103', 'MÃ_CẢM_BIẾN_CỬA_PHÒNG_103', 'trong');
+
+-- 3. Bảng lưu lịch sử đóng mở cửa cảm biến
+CREATE TABLE IF NOT EXISTS `door_logs` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `room_id` INT,
+  `event_time` DATETIME DEFAULT CURRENT_TIMESTAMP,
+  `event_type` VARCHAR(20), -- 'Bình thường' hoặc 'BẤT THƯỜNG'
+  `details` TEXT,
+  FOREIGN KEY (`room_id`) REFERENCES `rooms`(`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
