@@ -23,8 +23,17 @@ define('TUYA_API_URL', 'https://openapi.tuyaus.com'); // Thay đổi vùng tùy 
 // 3. Các hàm kiểm tra quyền truy cập của hệ thống
 function checkLogin() {
     if (!isset($_SESSION['username'])) {
-        header("Location: login.php");
-        exit();
+        // Nếu là yêu cầu gọi API ngầm (AJAX/Fetch)
+        if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest' || strpos($_SERVER['REQUEST_URI'], 'api_') !== false) {
+            header('HTTP/1.1 401 Unauthorized');
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'msg' => 'Chưa đăng nhập']);
+            exit();
+        } else {
+            // Nếu người dùng vào trực tiếp bằng trình duyệt (như vào index.php) thì mới chuyển hướng
+            header("Location: login.php");
+            exit();
+        }
     }
 }
 
