@@ -16,8 +16,8 @@ if (!$conn) {
 mysqli_set_charset($conn, "utf8mb4");
 
 // 2. Cấu hình API Tuya IoT (Dùng cho script lấy dữ liệu ngầm)
-define('TUYA_CLIENT_ID', 'DÁN_CLIENT_ID_TUYA_VÀO_ĐÂY');
-define('TUYA_SECRET', 'DÁN_SECRET_KEY_TUYA_VÀO_ĐÂY');
+define('TUYA_CLIENT_ID', 'qap98nweqkmufpdp5d3r');
+define('TUYA_SECRET', 'cb7684adc56045bdb5f77c1d7a541d48');
 define('TUYA_API_URL', 'https://openapi.tuyaus.com'); // Thay đổi vùng tùy tài khoản Tuya của bạn (us/eu/cn)
 
 // 3. Các hàm kiểm tra quyền truy cập của hệ thống
