@@ -31,4 +31,29 @@ function checkLogin() {
 function isAdmin() {
     return (isset($_SESSION['role']) && $_SESSION['role'] === 'admin');
 }
+
+// 4. Cấu hình Telegram Bot để thông báo về điện thoại
+define('TELEGRAM_BOT_TOKEN', '8920696041:AAHpQL-f3vPb3Ddrimnso1pmTSGuIvRingM');
+define('TELEGRAM_CHAT_ID', '1733868980');
+
+// Hàm dùng chung để gửi tin nhắn về Telegram ở bất kỳ đâu trong code
+function sendTelegramNotification($message) {
+    $url = "https://api.telegram.org/bot" . TELEGRAM_BOT_TOKEN . "/sendMessage";
+    $data = [
+        'chat_id' => TELEGRAM_CHAT_ID,
+        'text' => $message,
+        'parse_mode' => 'HTML' // Cho phép viết chữ đậm, nghiêng cho đẹp
+    ];
+
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $url);
+    curl_setopt($ch, CURLOPT_POST, true);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($data));
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+    $response = curl_exec($ch);
+    curl_close($ch);
+    
+    return $response;
+}
 ?>
