@@ -18,21 +18,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $user = mysqli_real_escape_string($conn, $_POST['username']);
     $pass = $_POST['password'];
 
+    // Tìm kiếm tài khoản trong bảng users
     $query = mysqli_query($conn, "SELECT * FROM users WHERE username = '$user'");
     $userData = mysqli_fetch_assoc($query);
 
-    // Xác thực mật khẩu đã mã hóa trong DB
+    // Xác thực mật khẩu dạng CHỮ THƯỜNG trực tiếp (Không dùng mã hóa băm)
     if ($userData && $pass === $userData['password']) {
-        // Hủy bỏ quyền bypass trang login sau khi đã xác thực thành công
+        
+        // Hủy bỏ quyền bypass trang login để các file khác (như config.php) kích hoạt lại bảo mật
         unset($_SESSION['is_on_login_page']); 
         
+        // Lưu thông tin đăng nhập vào Session để index.php nhận diện
         $_SESSION['user_id'] = $userData['id'];
         $_SESSION['username'] = $userData['username'];
         $_SESSION['role'] = $userData['role'];
         
+        // Chuyển hướng về trang chủ Dashboard khách sạn
         header('Location: index.php');
         exit();
     } else {
+        // Nếu sai tài khoản hoặc sai mật khẩu chữ thường
         $error = "Tên đăng nhập hoặc mật khẩu không chính xác!";
     }
 }
