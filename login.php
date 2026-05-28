@@ -22,7 +22,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $userData = mysqli_fetch_assoc($query);
 
     // Xác thực mật khẩu đã mã hóa trong DB
-    if ($userData && password_verify($pass, $userData['password'])) {
+    if ($userData && $pass === $userData['password']) {
         // Hủy bỏ quyền bypass trang login sau khi đã xác thực thành công
         unset($_SESSION['is_on_login_page']); 
         
