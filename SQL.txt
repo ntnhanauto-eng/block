@@ -1,0 +1,26 @@
+CREATE TABLE IF NOT EXISTS `rooms` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `room_name` varchar(50) NOT NULL,
+  `status` enum('trong','khach','ve_sink') NOT NULL DEFAULT 'trong',
+  `tuya_device_id` varchar(100) DEFAULT NULL, -- Điền ID cảm biến gắn với phòng này
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS `room_logs` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `room_id` int(11) NOT NULL,
+  `event_type` varchar(50) NOT NULL, -- THƯỜNG hoặc BẤT THƯỜNG
+  `details` varchar(255) NOT NULL,   -- Ví dụ: Cửa mở lúc khách vắng mặt
+  `event_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Chèn thử dữ liệu mẫu 1 phòng để test
+INSERT INTO `rooms` (`room_name`, `status`, `tuya_device_id`) VALUES ('Phòng 101', 'trong', 'eb9530c1bda34fc126kdqn');
+
+
+
+-- Chèn dữ liệu cho Phòng 102 và Phòng 103
+INSERT INTO `rooms` (`room_name`, `status`, `tuya_device_id`) VALUES 
+('Phòng 102', 'trong', 'eb27e8cde676d1752cnznu'),
+('Phòng 103', 'trong', 'eb4b84fb4b534fbe2ahss6');
