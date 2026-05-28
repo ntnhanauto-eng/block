@@ -24,3 +24,8 @@ INSERT INTO `rooms` (`room_name`, `status`, `tuya_device_id`) VALUES ('Phòng 10
 INSERT INTO `rooms` (`room_name`, `status`, `tuya_device_id`) VALUES 
 ('Phòng 102', 'trong', 'eb27e8cde676d1752cnznu'),
 ('Phòng 103', 'trong', 'eb4b84fb4b534fbe2ahss6');
+
+
+
+
+ALTER TABLE room_logs ADD COLUMN amount INT(11) DEFAULT 0 AFTER event_type;
