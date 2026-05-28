@@ -1,7 +1,15 @@
 <?php
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+// Tạo quyền bypass để ngăn chặn hàm checkLogin() trong config.php gây lỗi lặp chuyển hướng
+$_SESSION['is_on_login_page'] = true; 
+
 include 'config.php';
-// Nếu đã đăng nhập rồi thì tự động chuyển vào trang chủ luôn
-if (isset($_SESSION['user_id'])) {
+
+// Nếu đã đăng nhập rồi (kiểm tra bằng username đồng bộ với index.php) thì chuyển vào trang chủ luôn
+if (isset($_SESSION['username'])) {
     header('Location: index.php');
     exit();
 }
@@ -15,9 +23,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Xác thực mật khẩu đã mã hóa trong DB
     if ($userData && password_verify($pass, $userData['password'])) {
+        // Hủy bỏ quyền bypass trang login sau khi đã xác thực thành công
+        unset($_SESSION['is_on_login_page']); 
+        
         $_SESSION['user_id'] = $userData['id'];
         $_SESSION['username'] = $userData['username'];
         $_SESSION['role'] = $userData['role'];
+        
         header('Location: index.php');
         exit();
     } else {
