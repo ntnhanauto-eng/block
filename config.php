@@ -5,9 +5,9 @@ if (session_status() === PHP_SESSION_NONE) {
 
 // 1. Cấu hình Database của bạn trên 123HOST
 $db_host = "localhost";
-$db_user = "ten_user_db";      // Thay bằng User DB của bạn
-$db_pass = "mat_khau_db";      // Thay bằng Mật khẩu DB của bạn
-$db_name = "ten_database";     // Thay bằng Tên DB của bạn
+$db_user = "nacwxjyg_qlks";      // Thay bằng User DB của bạn
+$db_pass = "mDNshduHEJwB2REtKeWU";      // Thay bằng Mật khẩu DB của bạn
+$db_name = "nacwxjyg_qlks";     // Thay bằng Tên DB của bạn
 
 $conn = mysqli_connect($db_host, $db_user, $db_pass, $db_name);
 if (!$conn) {
