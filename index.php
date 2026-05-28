@@ -72,7 +72,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     <div class="grid-container" id="rooms-display">Đang đồng bộ dữ liệu phòng...</div>
 
     <div class="log-section">
-        <h3>Lịch sử mở cửa gần đây (Tự động cập nhật không cần F5)</h3>
+        <h3>Lịch sử đóng mở cửa, vệ sinh buồng phòng gần đây (Tự động cập nhật không cần F5)</h3>
         <table>
             <thead>
                 <tr>
