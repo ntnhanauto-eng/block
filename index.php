@@ -200,7 +200,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
                         roomHtml += `
                             <div class="room-card ${warningClass}" style="background-color: ${cardBgColor};">
-                                <h3>${room.room_name}</h3>
+                                <h3><a href="booking.php?room_id=${room.id}" style="color: #2c3e50; text-decoration: none; border-bottom: 1px dashed #2c3e50;" title="Bấm vào để Check-in / Check-out">${room.room_name} ⚙️</a></h3>
                                 <div style="background: ${doorColor}; color: white; padding: 6px; margin: 10px 0; border-radius: 4px; font-weight: bold; font-size: 13px;">
                                     ${doorBadge}
                                 </div>
