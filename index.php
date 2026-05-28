@@ -61,18 +61,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     </div>
 
     <script>
-    // Hàm thực hiện lấy dữ liệu Real-time liên tục từ Server
+   // Hàm thực hiện lấy dữ liệu Real-time liên tục từ Server
     function loadRealTimeData() {
         fetch('api_get_status.php')
-            .then(res => res.json())
+            .then(res => {
+                // Kiểm tra nếu Server báo chưa đăng nhập (Mã 401)
+                if (res.status === 401) {
+                    window.location.href = 'login.php'; // Chuyển hướng cả trang về login
+                    return null; // Dừng xử lý các lệnh .then phía sau
+                }
+                return res.json();
+            })
             .then(data => {
+                // Nếu bị chặn đăng nhập ở trên (data là null), dừng xử lý hoàn toàn
+                if (!data) return;
+
                 // 1. Vẽ giao diện 3 phòng ngủ
                 let roomHtml = '';
                 data.rooms.forEach(room => {
+                    // Tạo tên hiển thị Tiếng Việt có dấu cho đẹp giao diện
+                    const statusMap = {
+                        'trong': 'Phòng Trống',
+                        'khach': 'Có Khách Ở',
+                        've_sinh': 'Đang Vệ Sinh'
+                    };
+                    let displayName = statusMap[room.status] || room.status.toUpperCase();
+
                     roomHtml += `
                         <div class="room-card">
                             <h3>${room.room_name}</h3>
-                            <p>Cấu hình: <span style="color:green; font-weight:bold;">${room.status.toUpperCase()}</span></p>
+                            <p>Cấu hình: <span style="color:green; font-weight:bold;">${displayName}</span></p>
                             <select onchange="updateRoomStatus(${room.id}, this.value)">
                                 <option value="trong" ${room.status=='trong'?'selected':''}>Phòng Trống</option>
                                 <option value="khach" ${room.status=='khach'?'selected':''}>Có Khách Ở</option>
