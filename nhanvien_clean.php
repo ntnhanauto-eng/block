@@ -43,7 +43,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['complete_cleaning']))
         if ($update) {
             // 2. Ghi lịch sử vào bảng room_logs
             $time_now = date('Y-m-d H:i:s');
-            mysqli_query($conn, "INSERT INTO room_logs (room_id, event_time, event_type, details) VALUES ($room_id, '$time_now', 'DỌN XONG', 'Nhân viên buồng phòng nhập mã PIN xác nhận đã dọn dẹp xong')");
+            mysqli_query($conn, "INSERT INTO room_logs (room_id, event_time, event_type, details) VALUES ($room_id, '$time_now', 'DỌN XONG', 'Nhân viên xác nhận hoàn thành từ danh sách riêng lẻ')");
             
             // 3. Bắn Telegram báo cho cả hệ thống biết
             if (function_exists('sendTelegramNotification')) {
