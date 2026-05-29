@@ -7,16 +7,16 @@ error_reporting(E_ALL);
 include 'config.php';
 
 // --- CẤU HÌNH THÔNG TIN TUYA API ---
-$client_id   = "MÃ_CLIENT_ID_TUYA_CỦA_BẠN";     // Điền Access ID của bạn vào đây
-$secret      = "MÃ_SECRET_CỦA_BẠN";            // Điền Access Secret của bạn vào đây
+$client_id   = "qap98nweqkmufpdp5d3r";     // Điền Access ID của bạn vào đây
+$secret      = "cb7684adc56045bdb5f77c1d7a541d48";            // Điền Access Secret của bạn vào đây
 $easyTuyaUrl = "https://openapi.tuyaus.com";    // Endpoint Tuya (Ví dụ khu vực Châu Mỹ/Châu Á)
 
 // Cấu hình danh sách thiết bị cảm biến gắn với ID phòng trong Database
 // Định dạng: ID_PHÒNG => "MÃ_DEVICE_ID_TUYA"
 $devices = [
-    1 => "MÃ_DEVICE_ID_PHONG_101",
-    2 => "MÃ_DEVICE_ID_PHONG_102",
-    3 => "MÃ_DEVICE_ID_PHONG_103"
+    1 => "eb9530c1bda34fc126kdqn",
+    2 => "eb27e8cde676d1752cnznu",
+    3 => "eb4b84fb4b534fbe2ahss6"
 ];
 
 $reversed_rooms = []; // Để trống nếu không có cảm biến nào bị ngược logic
