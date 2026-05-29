@@ -1,42 +1,49 @@
 <?php
-// 1. Ép hệ thống hiển thị lỗi ra màn hình
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
-
+// api_get_status.php
 include 'config.php';
 header('Content-Type: application/json; charset=utf-8');
 
-// 2. Kiểm tra kết nối Database
-if (!isset($conn)) {
-    die("LỖI: Biến kết nối Database trong file config.php không phải tên là \$conn. Bạn hãy kiểm tra lại file config.php xem biến đó tên là gì (ví dụ: \$connect, \$db, \$link...) để sửa lại.");
-}
-
-$rooms_query = mysqli_query($conn, "SELECT id, room_name, status FROM rooms");
-if (!$rooms_query) {
-    die("LỖI SQL (rooms): " . mysqli_error($conn));
-}
-
+// 1. LẤY DANH SÁCH PHÒNG VÀ TRẠNG THÁI CẢM BIẾN MỚI NHẤT
+$rooms_query = mysqli_query($conn, "SELECT id, room_name, status, is_forget_warning FROM rooms");
 $rooms = [];
+
 while ($row = mysqli_fetch_assoc($rooms_query)) {
-    // Lấy dòng log cảm biến mới nhất
+    // Lấy dòng CẢM BIẾN mới nhất từ DB do file cron ghi vào
     $log_q = mysqli_query($conn, "SELECT details FROM room_logs WHERE room_id = {$row['id']} AND event_type = 'CẢM BIẾN' ORDER BY id DESC LIMIT 1");
-    
-    if (!$log_q) {
-        die("LỖI SQL (room_logs): " . mysqli_error($conn) . ". -> Hãy kiểm tra xem tên bảng room_logs hoặc các tên cột đã gõ đúng chưa.");
-    }
-    
     $log = mysqli_fetch_assoc($log_q);
     
     $rooms[] = [
-        "id" => $row['id'],
+        "id" => (int)$row['id'],
         "room_name" => $row['room_name'],
         "status" => $row['status'],
-        "door" => ($log && isset($log['details'])) ? $log['details'] : 'Đóng'
+        "door" => $log['details'] ?? 'Đóng', // Mặc định Đóng nếu chưa có log
+        "is_forget_warning" => (bool)$row['is_forget_warning']
     ];
 }
 
+// 2. LẤY DANH SÁCH 5 LỊCH SỬ (LOGS) MỚI NHẤT
+$logs_query = mysqli_query($conn, "SELECT rl.id, rl.event_time, r.room_name, rl.event_type, rl.amount, rl.details 
+                                   FROM room_logs rl 
+                                   JOIN rooms r ON rl.room_id = r.id 
+                                   ORDER BY rl.id DESC LIMIT 5");
+$logs = [];
+
+while ($log_row = mysqli_fetch_assoc($logs_query)) {
+    $logs[] = [
+        "id" => (int)$log_row['id'],
+        "event_time" => $log_row['event_time'],
+        "room_name" => $log_row['room_name'],
+        "event_type" => $log_row['event_type'],
+        "amount" => (int)$log_row['amount'],
+        "details" => $log_row['details']
+    ];
+}
+
+// 3. XUẤT MẢNG JSON ĐẦY ĐỦ CẢ ROOMS VÀ LOGS
 ob_clean(); // Xóa bộ đệm rác
-echo json_encode(["rooms" => $rooms], JSON_UNESCAPED_UNICODE);
+echo json_encode([
+    "rooms" => $rooms,
+    "logs" => $logs
+], JSON_UNESCAPED_UNICODE);
 exit;
 ?>
