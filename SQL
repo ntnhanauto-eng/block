@@ -1,0 +1,1 @@
+ALTER TABLE rooms ADD COLUMN alert_enabled TINYINT(1) DEFAULT 1;
