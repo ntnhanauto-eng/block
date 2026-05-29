@@ -19,17 +19,17 @@ $guest_info = [
     'cccd' => 'Không rõ',
     'guests_count' => 1,
     'checkin_time' => 'Không rõ',
-    'stay_type' => 'gio', // gio hoặc ngay
+    'stay_type' => 'gio', 
     'price_rate' => 100000,
     'deposit' => 0,
     'services' => []
 ];
 
-if ($room['status'] === 'khach') {
-    // Tìm lại bản ghi Check-in gần nhất của phòng này
-    $log_checkin_q = mysqli_query($conn, "SELECT event_time, details FROM room_logs WHERE room_id = $room_id AND details LIKE '%Check-in%' ORDER BY id DESC LIMIT 1");
-    $log_checkin = mysqli_fetch_assoc($log_checkin_q);
+// Lấy bản ghi Check-in gần nhất của phòng này (Dùng cho cả việc lấy giờ dọn dẹp hoặc giờ khách vào)
+$log_checkin_q = mysqli_query($conn, "SELECT event_time, details FROM room_logs WHERE room_id = $room_id AND details LIKE '%Check-in%' ORDER BY id DESC LIMIT 1");
+$log_checkin = mysqli_fetch_assoc($log_checkin_q);
 
+if ($room['status'] === 'khach') {
     if ($log_checkin) {
         $guest_info['checkin_time'] = $log_checkin['event_time'];
         
@@ -38,22 +38,21 @@ if ($room['status'] === 'khach') {
             $guest_info['cccd'] = $matches[2];
             $guest_info['guests_count'] = (int)$matches[3];
         }
-        // Đọc Hình thức ở (Giờ/Ngày)
         if (preg_match('/Hình thức: \[(.*?)\]/', $log_checkin['details'], $type_matches)) {
-            $guest_info['stay_type'] = $type_matches[1]; // gio hoặc ngay
+            $guest_info['stay_type'] = $type_matches[1]; 
         }
-        // Đọc giá cấu hình
         if (preg_match('/Giá phòng: \[(\d+)\]/', $log_checkin['details'], $price_matches)) {
             $guest_info['price_rate'] = (int)$price_matches[1];
         }
-        // Đọc tiền ứng trước
         if (preg_match('/Ứng trước: \[(\d+)\]/', $log_checkin['details'], $deposit_matches)) {
             $guest_info['deposit'] = (int)$deposit_matches[1];
         }
     }
 
-    // Tìm tất cả các dịch vụ phát sinh
-    $services_q = mysqli_query($conn, "SELECT event_time, details, amount FROM room_logs WHERE room_id = $room_id AND event_type = 'DỊCH VỤ' AND event_time >= '{$guest_info['checkin_time']}' ORDER BY id ASC");
+    // ĐÃ SỬA: Nếu không tìm thấy checkin_time, ta lấy dịch vụ trong vòng 24h qua để bill KHÔNG BAO GIỜ BỊ ẨN
+    $time_limit = ($guest_info['checkin_time'] !== 'Không rõ') ? $guest_info['checkin_time'] : date('Y-m-d H:i:s', strtotime('-1 day'));
+    
+    $services_q = mysqli_query($conn, "SELECT event_time, details, amount FROM room_logs WHERE room_id = $room_id AND event_type = 'DỊCH VỤ' AND event_time >= '$time_limit' ORDER BY id ASC");
     while ($srv = mysqli_fetch_assoc($services_q)) {
         $guest_info['services'][] = $srv;
     }
@@ -64,7 +63,7 @@ if (isset($_POST['check_in'])) {
     $guest_name   = mysqli_real_escape_string($conn, $_POST['guest_name']);
     $cccd         = mysqli_real_escape_string($conn, $_POST['cccd']);
     $guests_count = (int)$_POST['guests_count'];
-    $stay_type    = mysqli_real_escape_string($conn, $_POST['stay_type']); // gio hoặc ngay
+    $stay_type    = mysqli_real_escape_string($conn, $_POST['stay_type']); 
     $price        = (int)str_replace('.', '', $_POST['price']);
     $deposit      = (int)str_replace('.', '', $_POST['deposit']);
     $time_now     = date('Y-m-d H:i:s');
@@ -77,16 +76,27 @@ if (isset($_POST['check_in'])) {
     $formatted_price = number_format($price, 0, ',', '.');
     $formatted_deposit = number_format($deposit, 0, ',', '.');
     
-    // Ghi chi tiết log kèm cấu hình mới
     $details = "Lễ tân [$user_staff] Check-in khách: $guest_name ($cccd) - Số người: $guests_count - Hình thức: [{$stay_type}] ({$stay_type_vn}) - Giá phòng: [{$price}] ({$formatted_price}đ/{$unit_vn}) - Ứng trước: [{$deposit}] ({$formatted_deposit}đ)";
-    
     mysqli_query($conn, "INSERT INTO room_logs (room_id, event_time, event_type, amount, details) VALUES ($room_id, '$time_now', 'LỄ TÂN', 0, '$details')");
     
-    // Báo Telegram
     if (function_exists('sendTelegramNotification')) {
-        sendTelegramNotification("🛎️ <b>THÔNG BÁO KHÁCH NHẬN PHÒNG</b>\n🏨 <b>{$room['room_name']}</b>\n👤 Lễ tân: <code>$user_staff</code>\n📝 Khách hàng: <b>$guest_name</b>\n🪪 CCCD: <code>$cccd</code>\n👥 Số người: $guests_count\n🔄 Hình thức: <b>$stay_type_vn</b>\n💰 Giá thuê: {$formatted_price}đ/{$unit_vn}\n💵 Tiền cọc ứng trước: <b>{$formatted_deposit}đ</b>\n⏰ Thời gian: $time_now");
+        sendTelegramNotification("🛎️ <b>THÔNG BÁO KHÁCH NHẬN PHÒNG</b>\n🏨 <b>{$room['room_name']}</b>\n👤 Lễ tân: <code>$user_staff</code>\n📝 Khách hàng: <b>$guest_name</b>\n🔄 Hình thức: <b>$stay_type_vn</b>\n💵 Tiền cọc ứng trước: <b>{$formatted_deposit}đ</b>");
     }
+    header("Location: index.php");
+    exit();
+}
+
+// XỬ LÝ HOÀN TẤT VỆ SINH BUỒNG PHÒNG (MỚI BỔ SUNG)
+if (isset($_POST['finish_cleaning'])) {
+    $time_now = date('Y-m-d H:i:s');
+    $user_staff = $_SESSION['username'];
+    mysqli_query($conn, "UPDATE rooms SET status = 'trong' WHERE id = $room_id");
     
+    mysqli_query($conn, "INSERT INTO room_logs (room_id, event_time, event_type, amount, details) VALUES ($room_id, '$time_now', 'LỄ TÂN', 0, 'Nhân viên [$user_staff] hoàn tất dọn dẹp vệ sinh phòng')");
+    
+    if (function_exists('sendTelegramNotification')) {
+        sendTelegramNotification("🧹 <b>VỆ SINH BUỒNG PHÒNG:</b>\n🏨 <b>{$room['room_name']}</b>\n🟢 Đã dọn dẹp xong. Phòng sẵn sàng đón khách mới!");
+    }
     header("Location: index.php");
     exit();
 }
@@ -106,7 +116,6 @@ if (isset($_POST['add_service'])) {
     if (function_exists('sendTelegramNotification')) {
         sendTelegramNotification("🛒 <b>DỊCH VỤ PHÁT SINH:</b>\n🏨 <b>{$room['room_name']}</b>\n📦 Đồ gọi thêm: $service_name\n💰 Số tiền: {$formatted_srv_price}đ");
     }
-
     header("Location: booking.php?room_id=$room_id&open_panel=1");
     exit();
 }
@@ -125,24 +134,17 @@ if (isset($_POST['check_out'])) {
         $checkout_time = time();
         $diff_seconds = $checkout_time - $checkin_time;
         if ($diff_seconds > 0) {
-            if ($stay_type === 'ngay') {
-                $units = ceil($diff_seconds / 86400); // 1 ngày = 86400 giây
-            } else {
-                $units = ceil($diff_seconds / 3600);  // 1 giờ = 3600 giây
-            }
+            $units = ($stay_type === 'ngay') ? ceil($diff_seconds / 86400) : ceil($diff_seconds / 3600);
         }
     }
 
     $room_bill = $units * $price_rate;
-
     $total_services_bill = 0;
     foreach ($guest_info['services'] as $srv) {
         $total_services_bill += (int)$srv['amount'];
     }
 
-    // Tổng tiền hóa đơn gốc
     $subtotal = $room_bill + $total_services_bill;
-    // Tiền phải thu sau khi trừ đi tiền đã ứng trước
     $deposit = $guest_info['deposit'];
     $total_bill = $subtotal - $deposit;
 
@@ -151,13 +153,11 @@ if (isset($_POST['check_out'])) {
     $unit_label = ($stay_type === 'ngay') ? 'ngày' : 'giờ';
     $details_out = "Lễ tân [$user_staff] Check-out - Tổng: $units $unit_label (Tiền phòng: " . number_format($room_bill, 0, ',', '.') . "đ) - Tiền dịch vụ: " . number_format($total_services_bill, 0, ',', '.') . "đ - Đã ứng trước: " . number_format($deposit, 0, ',', '.') . "đ -> Tổng thu thêm: " . number_format($total_bill, 0, ',', '.') . "đ";
     
-    // Lưu số tiền THU THÊM CUỐI CÙNG vào cột amount của log
     mysqli_query($conn, "INSERT INTO room_logs (room_id, event_time, event_type, amount, details) VALUES ($room_id, '$time_now', 'LỄ TÂN', $total_bill, '$details_out')");
 
-    // Báo Telegram
     if (function_exists('sendTelegramNotification')) {
         $stay_type_vn = ($stay_type === 'ngay') ? 'Theo Ngày' : 'Theo Giờ';
-        sendTelegramNotification("💰 <b>THÔNG BÁO TRẢ PHÒNG (CHECK-OUT)</b>\n🏨 <b>{$room['room_name']}</b>\n👤 Lễ tân: <code>$user_staff</code>\n🔄 Hình thức ở: $stay_type_vn\n⏱️ Thời gian dùng: <b>$units $unit_label</b>\n💵 Tiền phòng: " . number_format($room_bill, 0, ',', '.') . "đ\n🛒 Tiền dịch vụ: " . number_format($total_services_bill, 0, ',', '.') . "đ\n💳 Tổng hóa đơn: " . number_format($subtotal, 0, ',', '.') . "đ\n📉 Đã trừ tiền cọc: -" . number_format($deposit, 0, ',', '.') . "đ\n---------------------------------\n🧮 <b>👉 TỔNG TIỀN THU THÊM: " . number_format($total_bill, 0, ',', '.') . "đ</b>\n🧹 <i>Phòng đã chuyển sang CHỜ VỆ SINH</i>");
+        sendTelegramNotification("💰 <b>THÔNG BÁO TRẢ PHÒNG (CHECK-OUT)</b>\n🏨 <b>{$room['room_name']}</b>\n👤 Lễ tân: <code>$user_staff</code>\n⏱️ Thời gian dùng: <b>$units $unit_label</b> ($stay_type_vn)\n💳 Tổng hóa đơn: " . number_format($subtotal, 0, ',', '.') . "đ\n📉 Đã trừ tiền cọc: -" . number_format($deposit, 0, ',', '.') . "đ\n---------------------------------\n🧮 <b>👉 TỔNG TIỀN THU THÊM: " . number_format($total_bill, 0, ',', '.') . "đ</b>");
     }
 
     $f_room_bill = number_format($room_bill, 0, ',', '.');
@@ -209,8 +209,12 @@ if (isset($_POST['check_out'])) {
     <div class="box">
         <h2>🏨 QUẦY PHÒNG: <?php echo htmlspecialchars($room['room_name']); ?></h2>
         <p style="text-align: center; font-weight: bold; font-size: 15px;">Trạng thái: 
-            <span style="color: <?php echo $room['status'] === 'trong' ? '#28a745' : '#dc3545'; ?>;">
-                <?php echo $room['status'] === 'trong' ? '🟢 PHÒNG TRỐNG' : '🔴 ĐANG CÓ KHÁCH'; ?>
+            <span style="color: <?php echo ($room['status'] === 'trong') ? '#28a745' : (($room['status'] === 'khach') ? '#dc3545' : '#ffc107'); ?>;">
+                <?php 
+                    if($room['status'] === 'trong') echo '🟢 PHÒNG TRỐNG';
+                    elseif($room['status'] === 'khach') echo '🔴 ĐANG CÓ KHÁCH';
+                    else echo '🟡 ĐANG VỆ SINH';
+                ?>
             </span>
         </p>
 
@@ -245,6 +249,15 @@ if (isset($_POST['check_out'])) {
                 </div>
                 <button type="submit" name="check_in" class="btn btn-in">🔑 XÁC NHẬN NHẬN PHÒNG</button>
             </form>
+
+        <?php elseif ($room['status'] === 've_sinh'): ?>
+            <div style="text-align: center; padding: 20px 0;">
+                <p style="font-size: 16px; color: #555;">Phòng này vừa trả khách và đang được nhân viên làm vệ sinh buồng phòng.</p>
+                <form method="POST">
+                    <button type="submit" name="finish_cleaning" class="btn btn-in" style="background: #28a745;">✨ HOÀN TẤT VỆ SINH (CHUYỂN THÀNH PHÒNG TRỐNG)</button>
+                </form>
+            </div>
+
         <?php else: ?>
             <button class="btn-toggle" onclick="toggleSlidePanel()">📋 XEM THÔNG TIN LƯU TRÚ & ORDER</button>
             
@@ -333,7 +346,7 @@ function updatePriceLabel(val) {
     if (val === 'ngay') {
         label.innerText = "Giá phòng cấu hình (đ/ngày):";
         if(document.getElementById('price_input').value === '100.000') {
-            document.getElementById('price_input').value = '350.000'; // Đổi gợi ý giá ngày hợp lý hơn
+            document.getElementById('price_input').value = '350.000';
         }
     } else {
         label.innerText = "Giá phòng cấu hình (đ/giờ):";
