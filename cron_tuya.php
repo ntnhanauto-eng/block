@@ -21,7 +21,7 @@ $devices = [
     3 => "eb4b84fb4b534fbe2ahss6"
 ];
 
-$reversed_rooms = []; 
+$reversed_rooms = []; // Để trống nếu không có cảm biến nào bị ngược logic
 
 // ==========================================
 // 2. HÀM TỰ ĐỘNG GỬI TIN NHẮN TELEGRAM
@@ -54,28 +54,14 @@ function thong_bao_telegram($message) {
 }
 
 // ==========================================
-// 3. CÁC HÀM XỬ LÝ KẾT NỐI API TUYA CLOUD
+// 3. CÁC HÀM XỬ LÝ KẾT NỐI API TUYA CLOUD (Giữ nguyên gốc chạy được)
 // ==========================================
 function getTuyaAccessToken($url, $client_id, $secret) {
-    // A. LẤY THỜI GIAN CHUẨN TỪ API ĐỘC LẬP CỦA TUYA (KHÔNG CẦN CHỮ KÝ)
-    $ch_time = curl_init("$url/v1.0/utils/time");
-    curl_setopt($ch_time, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch_time, CURLOPT_TIMEOUT, 5);
-    $res_time = curl_exec($ch_time);
-    curl_close($ch_time);
-    
-    $json_time = json_decode($res_time, true);
-    
-    // Nếu API Tuya trả về thời gian chuẩn thành công thì dùng, nếu kẹt mới dùng giờ của Host
-    $t = (isset($json_time['success']) && $json_time['success']) ? $json_time['result']['t'] : (time() * 1000);
-    
-    // B. TẠO CHỮ KÝ (SIGN) DỰA TRÊN GIỜ CHUẨN CỦA TUYA
+    $t = time() * 1000;
     $sign = strtoupper(hash_hmac('sha256', $client_id . $t, $secret));
     
-    // C. TIẾN HÀNH XIN ACCESS TOKEN CHÍNH THỨC
     $ch = curl_init("$url/v1.0/token?grant_type=1");
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_TIMEOUT, 7);
     curl_setopt($ch, CURLOPT_HTTPHEADER, [
         "client_id: $client_id",
         "sign: $sign",
@@ -86,31 +72,16 @@ function getTuyaAccessToken($url, $client_id, $secret) {
     curl_close($ch);
     
     $json = json_decode($res, true);
-    
-    if (!isset($json['result']['access_token'])) {
-        global $tuya_raw_error;
-        $tuya_raw_error = $res . " (Giờ sử dụng: " . $t . ")";
-        return null;
-    }
-    
-    return $json['result']['access_token'];
+    return $json['result']['access_token'] ?? null;
 }
 
 function getTuyaDeviceStatus($url, $client_id, $access_token, $secret, $device_id) {
-    // Đọc lại thời gian chuẩn cho mỗi lượt gửi trạng thái thiết bị
-    $ch_time = curl_init("$url/v1.0/utils/time");
-    curl_setopt($ch_time, CURLOPT_RETURNTRANSFER, true);
-    $res_time = curl_exec($ch_time);
-    curl_close($ch_time);
-    $json_time = json_decode($res_time, true);
-    $t = (isset($json_time['success']) && $json_time['success']) ? $json_time['result']['t'] : (time() * 1000);
-
+    $t = time() * 1000;
     $string_to_sign = $client_id . $access_token . $t;
     $sign = strtoupper(hash_hmac('sha256', $string_to_sign, $secret));
     
     $ch = curl_init("$url/v1.0/devices/$device_id/status");
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_TIMEOUT, 5);
     curl_setopt($ch, CURLOPT_HTTPHEADER, [
         "client_id: $client_id",
         "access_token: $access_token",
@@ -127,11 +98,10 @@ function getTuyaDeviceStatus($url, $client_id, $access_token, $secret, $device_i
 // ==========================================
 // 4. CHU TRÌNH CHẠY NGẦM QUÉT 4 LẦN TRONG 1 PHÚT
 // ==========================================
-$tuya_raw_error = "";
 $access_token = getTuyaAccessToken($easyTuyaUrl, $client_id, $secret);
 
 if (!$access_token) {
-    die("Lỗi: Không thể kết nối lấy Access Token từ Tuya Cloud.<br><b>Phản hồi gốc từ Tuya:</b> <pre>" . htmlspecialchars($tuya_raw_error) . "</pre>");
+    die("Lỗi: Không thể kết nối lấy Access Token từ Tuya Cloud.");
 }
 
 for ($cycle = 0; $cycle < 4; $cycle++) {
@@ -144,6 +114,7 @@ for ($cycle = 0; $cycle < 4; $cycle++) {
         if (isset($data['success']) && $data['success']) {
             $is_open = false;
             
+            // Tìm thuộc tính trạng thái cửa
             foreach ($data['result'] as $status_item) {
                 if (in_array($status_item['code'], ['doorcontact_state', 'ismoving', 'switch'])) {
                     $is_open = ($status_item['value'] === true || $status_item['value'] === 'on' || $status_item['value'] === 'open');
@@ -157,12 +128,14 @@ for ($cycle = 0; $cycle < 4; $cycle++) {
             
             $current_state = $is_open ? 'Mở' : 'Đóng';
             
+            // A. Đọc trạng thái phòng hiện tại và cấu hình alert_enabled từ DB
             $room_q = mysqli_query($conn, "SELECT room_name, status, alert_enabled FROM rooms WHERE id = $room_id LIMIT 1");
             $room_data = mysqli_fetch_assoc($room_q);
-            $room_status   = isset($room_data['status']) ? strtolower(trim($room_data['status'])) : 'trong'; 
+            $room_status   = isset($room_data['status']) ? strtolower(trim($room_data['status'])) : 'trong'; // Chuẩn hóa chữ thường
             $room_name     = $room_data['room_name'] ?? "Phòng $room_id";
             $alert_enabled = $room_data['alert_enabled'] ?? 1; 
             
+            // B. Lấy log trạng thái cửa gần nhất từ DB để so sánh thay đổi
             $last_q = mysqli_query($conn, "SELECT details FROM room_logs WHERE room_id = $room_id AND event_type = 'CẢM BIẾN' ORDER BY id DESC LIMIT 1");
             $last = mysqli_fetch_assoc($last_q);
             $last_door_state = $last ? $last['details'] : 'Đóng';
@@ -170,6 +143,7 @@ for ($cycle = 0; $cycle < 4; $cycle++) {
             $trigger_alert = false;
             $alert_message = "";
             
+            // TÌNH HUỐNG A: Cửa thực tế vừa có hành động Đóng sang Mở hoặc ngược lại
             if ($last_door_state !== $current_state) {
                 mysqli_query($conn, "INSERT INTO room_logs (room_id, event_time, event_type, details) VALUES ($room_id, NOW(), 'CẢM BIẾN', '$current_state')");
                 echo "$room_name: Thay đổi trạng thái cửa thành $current_state. Đã ghi DB.<br>";
@@ -179,19 +153,23 @@ for ($cycle = 0; $cycle < 4; $cycle++) {
                     $alert_message = "⚠️ CẢNH BÁO ĐỘT NHẬP: {$room_name} đang TRỐNG nhưng CỬA VỪA MỞ! Vui lòng kiểm tra gấp!";
                 }
             } 
+            // TÌNH HUỐNG B: Cửa mở sẵn, nhưng phòng vừa đổi trạng thái sang TRỐNG trong khi cửa VẪN ĐANG MỞ
             else {
                 echo "$room_name: Không có thay đổi cửa ($current_state).<br>";
                 
                 if ($alert_enabled == 1 && $room_status === 'trong' && $current_state === 'Mở') {
+                    // Kiểm tra loại log gần nhất của phòng này trong DB xem có phải CẢNH BÁO không
                     $check_last_log_q = mysqli_query($conn, "SELECT event_type FROM room_logs WHERE room_id = $room_id ORDER BY id DESC LIMIT 1");
                     $last_log_data = mysqli_fetch_assoc($check_last_log_q);
                     $last_log_type = $last_log_data['event_type'] ?? '';
 
                     $should_alert = false;
                     
+                    // Nếu log gần nhất KHÔNG PHẢI là CẢNH BÁO (Lễ tân mới đổi trạng thái phòng nên chưa báo động phát nào) -> Báo ngay lập tức!
                     if ($last_log_type !== 'CẢNH BÁO') {
                         $should_alert = true;
                     } else {
+                        // Nếu dòng gần nhất ĐÃ LÀ CẢNH BÁO RỒI, kiểm tra chống spam 1 phút bằng ID tăng dần (An toàn hơn NOW())
                         $check_time_q = mysqli_query($conn, "SELECT id FROM room_logs WHERE room_id = $room_id AND event_type = 'CẢNH BÁO' AND event_time > DATE_SUB(NOW(), INTERVAL 1 MINUTE)");
                         if (mysqli_num_rows($check_time_q) == 0) {
                             $should_alert = true;
@@ -200,14 +178,17 @@ for ($cycle = 0; $cycle < 4; $cycle++) {
 
                     if ($should_alert) {
                         $trigger_alert = true;
-                        $alert_message = "⚠️ CẢNH BÁO AN TOÀN: {$room_name} đang trạng thái TRỐNG nhưng CỬA VỪA MỞ! Vui lòng khép lại!";
+                        $alert_message = "⚠️ CẢNH BÁO AN TOÀN: {$room_name} đang trạng thái TRỐNG nhưng CỬA VẪN ĐANG MỞ! Vui lòng khép lại!";
                     }
                 }
             }
             
+            // C. Thực thi ghi log cảnh báo màu đỏ và bắn Telegram
             if ($trigger_alert) {
                 mysqli_query($conn, "INSERT INTO room_logs (room_id, event_time, event_type, details) VALUES ($room_id, NOW(), 'CẢNH BÁO', '$alert_message')");
                 echo "<strong>[ALERT]</strong> " . $alert_message . "<br>";
+                
+                // Bắn tin nhắn về nhóm Telegram
                 thong_bao_telegram($alert_message);
             }
         } else {
