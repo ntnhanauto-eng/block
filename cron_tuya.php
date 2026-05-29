@@ -60,9 +60,21 @@ function thong_bao_telegram($message) {
 // 3. CÁC HÀM XỬ LÝ KẾT NỐI API TUYA CLOUD
 // ==========================================
 function getTuyaAccessToken($url, $client_id, $secret) {
-    $t = time() * 1000;
+    // 1. GỌI API PHỤ LẤY THỜI GIAN CHUẨN TỪ CHÍNH TUYA CLOUD (CHỐNG LỆCH GIỜ HOST)
+    $ch_time = curl_init("$url/v1.0/token?grant_type=1");
+    curl_setopt($ch_time, CURLOPT_RETURNTRANSFER, true);
+    $res_time = curl_exec($ch_time);
+    curl_close($ch_time);
+    
+    $json_time = json_decode($res_time, true);
+    
+    // Nếu Tuya trả về thời gian chuẩn thì dùng, nếu lỗi thì mới dùng giờ của Host
+    $t = $json_time['t'] ?? (time() * 1000);
+    
+    // 2. TẠO CHỮ KÝ (SIGN) BẰNG THỜI GIAN CHUẨN VỪA LẤY
     $sign = strtoupper(hash_hmac('sha256', $client_id . $t, $secret));
     
+    // 3. TIẾN HÀNH LẤY ACCESS TOKEN CHÍNH THỨC
     $ch = curl_init("$url/v1.0/token?grant_type=1");
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_HTTPHEADER, [
@@ -76,7 +88,6 @@ function getTuyaAccessToken($url, $client_id, $secret) {
     
     $json = json_decode($res, true);
     
-    // Lưu phản hồi gốc để chuẩn bị cho mục đích chẩn đoán nếu lấy token thất bại
     if (!isset($json['result']['access_token'])) {
         global $tuya_raw_error;
         $tuya_raw_error = $res;
