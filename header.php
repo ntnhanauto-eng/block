@@ -60,10 +60,17 @@ $current_role = $_SESSION['role'] ?? 'nhanvien';
             gap: 12px;
         }
         
+        /* ĐÃ SỬA: Biến khối logo thành nút bấm, xóa gạch chân và thêm hiệu ứng mượt mà khi hover */
         .header-brand {
             display: flex;
             align-items: center;
             gap: 10px;
+            text-decoration: none !important;
+            transition: opacity 0.2s ease;
+            cursor: pointer;
+        }
+        .header-brand:hover {
+            opacity: 0.85; /* Hiệu ứng mờ nhẹ sang trọng khi di chuột vào logo */
         }
         
         .header-brand h2 { 
@@ -147,10 +154,11 @@ $current_role = $_SESSION['role'] ?? 'nhanvien';
 <body>
 
     <div class="hotel-header">
-        <div class="header-brand">
+        <a href="index.php" class="header-brand" title="Quay về trang chủ điều hành">
             <i class="fa-solid fa-hotel" style="color: var(--accent-color); font-size: 20px;"></i>
             <h2>THÀNH NGHIÊM <span>HOTEL</span></h2>
-        </div>
+        </a>
+        
         <div class="header-controls">
             <button class="btn-header-darkmode" onclick="toggleHeaderDarkMode()">
                 <i id="theme-icon" class="fa-solid fa-moon"></i> <span id="theme-text">Chế độ đêm</span>
