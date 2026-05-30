@@ -11,9 +11,11 @@ $secret    = 'cb7684adc56045bdb5f77c1d7a541d48';
 $baseUrl   = 'https://openapi.tuyaus.com';
 
 $devices = [
-    1 => 'eb9530c1bda34fc126kdqn',
-    2 => 'eb27e8cde676d1752cnznu',
-    3 => 'eb4b84fb4b534fbe2ahss6',
+    1 => 'eb9530c1bda34fc126kdqn', // cửa phòng
+    2 => 'eb27e8cde676d1752cnznu', // cửa sắt
+    3 => 'eb4b84fb4b534fbe2ahss6',  // cửa sắt trước
+    4 => 'eb7e2afed97c896d52kdyw',  // cửa sắt nhà trà
+    5 => 'eb5bd98332c838c398ovin',  // công tắc bếp
     // ... Thêm các phòng khác ở đây
 ];
 
