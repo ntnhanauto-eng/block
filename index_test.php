@@ -68,15 +68,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         /* LƯỚI PHÒNG: MAC ĐỊNH TRÊN MOBILE LÀ 2 PHÒNG MỘT HÀNG */
         .grid-container { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 15px; }
         
-        /* ĐÃ SỬA: Xóa bỏ hoàn toàn thuộc tính border-top ở class tĩnh CSS */
-        .room-card { padding: 12px 10px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.06); text-align: center; transition: all 0.3s ease; background: white; position: relative; display: flex; flex-direction: column; justify-content: space-between; box-sizing: border-box; }
+        /* CẤU HÌNH Ô PHÒNG CHUNG */
+        .room-card { padding: 12px 10px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.06); text-align: center; transition: all 0.3s ease; background: white; position: relative; display: flex; flex-direction: column; justify-content: space-between; box-sizing: border-box; border: 2px solid transparent; }
         .room-card h3 { margin: 0 0 6px 0; font-size: 16px; color: #2c3e50; }
         .room-badge-door { color: white; padding: 4px; margin: 4px 0 8px 0; border-radius: 4px; font-weight: bold; font-size: 11px; letter-spacing: 0.3px; }
         .room-card p { margin: 0 0 6px 0; font-size: 12px; color: #555; }
         .room-card select { width: 100%; padding: 6px; margin-top: 4px; border-radius: 4px; border: 1px solid #ccc; background: white; font-weight: 600; color: #444; cursor: pointer; font-size: 12px; }
         
-        /* ĐÃ SỬA: Loại bỏ border-top-color khẩn cấp */
-        .room-card.door-warning { box-shadow: 0 0 10px #e74c3c !important; }
+        /* Viền đỏ tĩnh khẩn cấp khi quên đóng cửa */
+        .room-card.door-warning { box-shadow: 0 0 10px #e74c3c !important; border: 2px solid #e74c3c !important; }
 
         /* LỊCH SỬ HÀNH LANG & CUỘN NGANG KHÔNG ÉP DÒNG */
         .log-section { background: white; padding: 15px; border-radius: 8px; margin-top: 25px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); transition: background 0.3s; }
@@ -233,9 +233,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                         let displayName = statusMap[room.status] || room.status.toUpperCase();
 
                         let cardBgColor = '#ffffff'; 
+                        // Khởi tạo thuộc tính viền động tùy biến
+                        let customStyle = ''; 
                         
                         if (room.status === 'trong') {
                             cardBgColor = '#e2f0d9'; 
+                            // 🔥 THÊM MỚI: Thêm viền đỏ lịm tinh tế kèm hiệu ứng đổ bóng shadow nhẹ sang trọng cho phòng TRỐNG
+                            customStyle = 'border: 2px solid #dc3545; box-shadow: 0 4px 10px rgba(220, 53, 69, 0.15);';
                         } else if (room.status === 'khach') {
                             cardBgColor = '#fce4d6'; 
                         } else if (room.status === 've_sinh' || room.status === 've_sink') {
@@ -250,9 +254,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                             isWarningActive = true; 
                         }
 
-                        // 🔥 ĐÃ SỬA: Loại bỏ hoàn toàn thuộc tính border-top-color khỏi mã HTML Render động ở đây
                         roomHtml += `
-                            <div class="room-card ${warningClass}" style="background-color: ${cardBgColor};">
+                            <div class="room-card ${warningClass}" style="background-color: ${cardBgColor}; ${customStyle}">
                                 <h3><a href="booking.php?room_id=${room.id}" style="color: #2c3e50; text-decoration: none; border-bottom: 1px dashed #2c3e50;" title="Bấm vào để Check-in / Check-out">${room.room_name} ⚙️</a></h3>
                                 <div class="room-badge-door" style="background: ${doorColor};">
                                     ${doorBadge}
