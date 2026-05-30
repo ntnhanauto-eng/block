@@ -33,57 +33,63 @@ if (isset($res['result']['access_token'])) {
 }
 
 // ========================================================
-// 3. TỐI ƯU: LẤY TRẠNG THÁI HÀNG LOẠT (SỬA LẠI CHỮ KÝ)
+// 3. TỐI ƯU: LẤY TRẠNG THÁI HÀNG LOẠT (CẬP NHẬT CHUẨN TUYA)
 // ========================================================
 $all_tuya_statuses = [];
 if (!empty($token)) {
-    // Gom tất cả ID thiết bị thành chuỗi cách nhau bởi dấu phẩy
+    // 1. Gom danh sách ID thiết bị cách nhau bởi dấu phẩy
     $device_ids_string = implode(',', array_values($devices));
     
-    $endpoint = "/v1.0/devices/status";
-    $queryParams = "device_ids=" . $device_ids_string; // Không để dấu ? ở đây
+    // 2. Endpoint chuẩn của Tuya cho việc lấy trạng thái hàng loạt
+    $endpoint = "/v1.0/iot-03/devices/status";
     
     $timestamp = round(microtime(true) * 1000);
     
-    // SỬA Ở ĐÂY: Tạo mã băm SHA256 cho phần Query String theo đúng chuẩn Tuya
-    $urlStringToHash = $endpoint . "?" . $queryParams;
-    $strToSign = "GET\n" . hash('sha256', "") . "\n" . "" . "\n" . $urlStringToHash;
+    // 3. Quy trình tạo Chuỗi Ký Tự (Sign) chuẩn của Tuya:
+    // Thân request trống thì Hash SHA256 của chuỗi rỗng luôn là giá trị cố định này:
+    $emptyBodyHash = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
+    
+    // Đối với Tuya, chuỗi ký tự cần ký KHÔNG cộng trực tiếp query string bằng dấu chấm, 
+    // mà phải tuân theo cấu trúc: METHOD + LF + HASH_BODY + LF + HEADERS + LF + URL_PATH + "?device_ids=xxx"
+    $strToSign = "GET\n" . $emptyBodyHash . "\n" . "" . "\n" . $endpoint . "?device_ids=" . $device_ids_string;
     
     $source = $accessId . $token . $timestamp . $strToSign;
     $sign_batch = strtoupper(hash_hmac('sha256', $source, $secret));
 
-    // Gọi API với URL đầy đủ
-    $ch_batch = curl_init($baseUrl . $endpoint . "?" . $queryParams);
+    // 4. Khởi tạo cURL gọi API
+    $url_api = $baseUrl . $endpoint . "?device_ids=" . $device_ids_string;
+    $ch_batch = curl_init($url_api);
     curl_setopt($ch_batch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch_batch, CURLOPT_HTTPHEADER, [
         "client_id: $accessId", 
         "access_token: $token", 
         "sign: $sign_batch", 
         "t: $timestamp", 
-        "sign_method: HMAC-SHA256"
+        "sign_method: HMAC-SHA256",
+        "Content-Type: application/json"
     ]);
     $batchResponse = curl_exec($ch_batch);
     curl_close($ch_batch);
 
     $batchData = json_decode($batchResponse, true);
     
-    // Duyệt kết quả trả về từ Tuya
+    // 5. Bóc tách dữ liệu trả về từ Tuya
     if (isset($batchData['success']) && $batchData['success'] == true && isset($batchData['result'])) {
         foreach ($batchData['result'] as $dev) {
             $dev_id = $dev['id'];
-            $status_val = 'Đóng'; // Mặc định của thiết bị này là Đóng
+            $status_val = 'Đóng'; // Mặc định ban đầu
             
             if (isset($dev['status']) && is_array($dev['status'])) {
                 foreach ($dev['status'] as $s) {
                     if ($s['code'] == 'doorcontact_state' || $s['code'] == 'switch') {
-                        // Nếu Tuya trả về true hoặc 'open' thì mới ghi nhận là Mở
-                        if ($s['value'] === true || $s['value'] === 'open') {
+                        // Kiểm tra nếu giá trị là true hoặc chuỗi 'open' hoặc 'opened'
+                        if ($s['value'] === true || $s['value'] === 'open' || $s['value'] === 'opened') {
                             $status_val = 'Mở';
                         }
                     }
                 }
             }
-            // Lưu trạng thái thực tế vào mảng tạm
+            // Lưu trạng thái thực tế vào mảng để vòng lặp dưới đối chiếu
             $all_tuya_statuses[$dev_id] = $status_val;
         }
     }
