@@ -33,71 +33,72 @@ if (isset($res['result']['access_token'])) {
 }
 
 // ========================================================
-// 3. TỐI ƯU: LẤY TRẠNG THÁI HÀNG LOẠT (ĐỔI SANG API LIST)
+// 3. TỐI ƯU TUYỆT ĐỐI: GỌI API SONG SONG (CURL MULTI)
 // ========================================================
 $all_tuya_statuses = [];
-if (!empty($token)) {
-    // 1. Gom danh sách ID thiết bị cách nhau bởi dấu phẩy
-    $device_ids_string = implode(',', array_values($devices));
-    
-    // 2. Sử dụng Endpoint lấy danh sách thiết bị kèm trạng thái (Dễ tạo chữ ký và ổn định nhất)
-    $endpoint = "/v1.0/devices";
-    $queryParams = "device_ids=" . $device_ids_string;
-    
-    $timestamp = round(microtime(true) * 1000);
-    
-    // Hash SHA256 của chuỗi rỗng (Thân request GET luôn trống)
-    $emptyBodyHash = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
-    
-    // Xây dựng chuỗi chữ ký chuẩn hóa theo quy định của Tuya
-    $strToSign = "GET\n" . $emptyBodyHash . "\n" . "" . "\n" . $endpoint . "?" . $queryParams;
-    $source = $accessId . $token . $timestamp . $strToSign;
-    $sign_batch = strtoupper(hash_hmac('sha256', $source, $secret));
 
-    // 3. Khởi tạo cURL gọi API
-    $url_api = $baseUrl . $endpoint . "?" . $queryParams;
-    $ch_batch = curl_init($url_api);
-    curl_setopt($ch_batch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch_batch, CURLOPT_HTTPHEADER, [
-        "client_id: $accessId", 
-        "access_token: $token", 
-        "sign: $sign_batch", 
-        "t: $timestamp", 
-        "sign_method: HMAC-SHA256",
-        "Content-Type: application/json"
-    ]);
-    $batchResponse = curl_exec($ch_batch);
-    curl_close($ch_batch);
+if (!empty($token) && !empty($devices)) {
+    $mh = curl_multi_init();
+    $curl_handles = [];
 
-    $batchData = json_decode($batchResponse, true);
-    
-    // 4. Bóc tách dữ liệu trả về từ Tuya
-    // Đối với API này, danh sách thiết bị sẽ nằm trong $batchData['result']['list'] hoặc $batchData['result']
-    $devices_list = [];
-    if (isset($batchData['success']) && $batchData['success'] == true && isset($batchData['result'])) {
-        $devices_list = isset($batchData['result']['list']) ? $batchData['result']['list'] : $batchData['result'];
+    // Tạo đồng thời các luồng kết nối cho từng thiết bị
+    foreach ($devices as $room_id => $active_device_id) {
+        $timestamp = round(microtime(true) * 1000);
+        $endpoint = "/v1.0/devices/$active_device_id/status";
+        $strToSign = "GET\n" . hash('sha256', "") . "\n" . "" . "\n" . $endpoint;
+        $source = $accessId . $token . $timestamp . $strToSign;
+        $sign2 = strtoupper(hash_hmac('sha256', $source, $secret));
+
+        $ch2_headers = [
+            "client_id: $accessId", 
+            "access_token: $token", 
+            "sign: $sign2", 
+            "t: $timestamp", 
+            "sign_method: HMAC-SHA256", 
+            "Content-Type: application/json"
+        ];
+
+        $ch = curl_init($baseUrl . $endpoint);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $ch2_headers);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 5); // Timeout 5 giây tránh treo luồng
+
+        // Thêm luồng này vào trình quản lý đa luồng
+        curl_multi_add_handle($mh, $ch);
+        $curl_handles[$active_device_id] = $ch;
     }
 
-    if (is_array($devices_list)) {
-        foreach ($devices_list as $dev) {
-            if (!isset($dev['id'])) continue;
-            
-            $dev_id = $dev['id'];
-            $status_val = 'Đóng'; // Mặc định ban đầu
-            
-            if (isset($dev['status']) && is_array($dev['status'])) {
-                foreach ($dev['status'] as $s) {
-                    if ($s['code'] == 'doorcontact_state' || $s['code'] == 'switch') {
-                        if ($s['value'] === true || $s['value'] === 'open' || $s['value'] === 'opened' || $s['value'] == '1') {
-                            $status_val = 'Mở';
-                        }
+    // Thực thi đồng thời tất cả các cuộc gọi API (Chạy song song)
+    $running = null;
+    do {
+        curl_multi_exec($mh, $running);
+        curl_multi_select($mh);
+    } while ($running > 0);
+
+    // Thu thập dữ liệu phản hồi từ các phòng và đóng luồng
+    foreach ($curl_handles as $active_device_id => $ch) {
+        $statusResponse = curl_multi_getcontent($ch);
+        curl_multi_remove_handle($mh, $ch);
+        curl_close($ch);
+
+        $status_val = 'Đóng'; // Mặc định ban đầu
+        $data = json_decode($statusResponse, true);
+
+        if (isset($data['success']) && $data['success'] == true && isset($data['result'])) {
+            foreach ($data['result'] as $status) {
+                if ($status['code'] == 'doorcontact_state' || $status['code'] == 'switch') {
+                    if ($status['value'] === true || $status['value'] === 'open' || $status['value'] === 'opened') {
+                        $status_val = 'Mở';
                     }
                 }
             }
-            // Ghi nhận trạng thái thực tế vào mảng tạm để đối chiếu ở Mục 4 bên dưới
-            $all_tuya_statuses[$dev_id] = $status_val;
         }
+        // Ghi nhận trạng thái thực tế trả về từ luồng đơn lẻ này
+        $all_tuya_statuses[$active_device_id] = $status_val;
     }
+    
+    // Đóng trình quản lý đa luồng
+    curl_multi_close($mh);
 }
 
 // ========================================================
