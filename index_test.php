@@ -50,6 +50,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     <style>
         body { font-family: 'Segoe UI', Arial, sans-serif; margin: 15px; background: #eef2f3; color: #333; transition: background 0.3s, color 0.3s; }
         
+        /* HEADER RESPONSIVE */
         .header { background: #2c3e50; color: white; padding: 12px 15px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 12px rgba(0,0,0,0.1); flex-wrap: wrap; gap: 10px; }
         .header h2 { margin: 0; font-size: 16px; letter-spacing: 0.5px; }
         .header a { color: #ffc107; text-decoration: none; font-weight: bold; margin-left: 5px; }
@@ -58,21 +59,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         
         .btn-darkmode { background: #34495e; color: #f1c40f; border: 1px solid #f1c40f; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 12px; }
         
+        /* THỐNG KÊ MINI */
         .stats-container { display: flex; gap: 8px; margin-top: 15px; }
         .stat-card { flex: 1; background: white; padding: 10px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); display: flex; flex-direction: column; justify-content: center; align-items: center; transition: background 0.3s; text-align: center; }
         .stat-card .num { font-size: 18px; font-weight: bold; color: #2c3e50; }
         .stat-card .label { font-size: 10px; color: #7f8c8d; font-weight: bold; margin-top: 2px; }
         
+        /* LƯỚI PHÒNG: MAC ĐỊNH TRÊN MOBILE LÀ 2 PHÒNG MỘT HÀNG */
         .grid-container { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 15px; }
         
-        .room-card { padding: 12px 10px; border-radius: 8px; border-top: 4px solid #3498db; box-shadow: 0 2px 6px rgba(0,0,0,0.06); text-align: center; transition: all 0.3s ease; background: white; position: relative; display: flex; flex-direction: column; justify-content: space-between; box-sizing: border-box; }
+        /* ĐÃ SỬA: Xóa bỏ hoàn toàn thuộc tính border-top ở class tĩnh CSS */
+        .room-card { padding: 12px 10px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.06); text-align: center; transition: all 0.3s ease; background: white; position: relative; display: flex; flex-direction: column; justify-content: space-between; box-sizing: border-box; }
         .room-card h3 { margin: 0 0 6px 0; font-size: 16px; color: #2c3e50; }
         .room-badge-door { color: white; padding: 4px; margin: 4px 0 8px 0; border-radius: 4px; font-weight: bold; font-size: 11px; letter-spacing: 0.3px; }
         .room-card p { margin: 0 0 6px 0; font-size: 12px; color: #555; }
         .room-card select { width: 100%; padding: 6px; margin-top: 4px; border-radius: 4px; border: 1px solid #ccc; background: white; font-weight: 600; color: #444; cursor: pointer; font-size: 12px; }
         
-        .room-card.door-warning { border-top-color: #e74c3c !important; }
+        /* ĐÃ SỬA: Loại bỏ border-top-color khẩn cấp */
+        .room-card.door-warning { box-shadow: 0 0 10px #e74c3c !important; }
 
+        /* LỊCH SỬ HÀNH LANG & CUỘN NGANG KHÔNG ÉP DÒNG */
         .log-section { background: white; padding: 15px; border-radius: 8px; margin-top: 25px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); transition: background 0.3s; }
         .log-section h3 { margin-top: 0; font-size: 15px; color: #2c3e50; border-bottom: 2px solid #eee; padding-bottom: 8px; }
         
@@ -198,7 +204,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         document.body.classList.add('dark-mode');
     }
 
-    // THAY ĐỔI THAM SỐ forceRender: Ép hệ thống vẽ lại màu khi lễ tân chủ động chọn trạng thái nhanh
     function loadRealTimeData(forceRender = false) {
         fetch('api_get_status.php')
             .then(res => res.json())
@@ -217,7 +222,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
                 let currentRoomsState = JSON.stringify(data.rooms);
                 
-                // NẾU forceRender bằng True HOẶC có sự thay đổi phần cứng -> Vẽ lại toàn bộ dải màu top
                 if (forceRender || currentRoomsState !== lastRoomsState) {
                     lastRoomsState = currentRoomsState;
 
@@ -229,17 +233,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                         let displayName = statusMap[room.status] || room.status.toUpperCase();
 
                         let cardBgColor = '#ffffff'; 
-                        let borderTopColor = '#3498db'; 
                         
                         if (room.status === 'trong') {
                             cardBgColor = '#e2f0d9'; 
-                            borderTopColor = '#28a745'; 
                         } else if (room.status === 'khach') {
                             cardBgColor = '#fce4d6'; 
-                            borderTopColor = '#dc3545'; 
                         } else if (room.status === 've_sinh' || room.status === 've_sink') {
                             cardBgColor = '#fff2cc'; 
-                            borderTopColor = '#ffc107'; 
                         }
 
                         let doorColor = room.door === 'Mở' ? '#dc3545' : '#28a745';
@@ -250,8 +250,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                             isWarningActive = true; 
                         }
 
+                        // 🔥 ĐÃ SỬA: Loại bỏ hoàn toàn thuộc tính border-top-color khỏi mã HTML Render động ở đây
                         roomHtml += `
-                            <div class="room-card ${warningClass}" style="background-color: ${cardBgColor}; border-top-color: ${borderTopColor};">
+                            <div class="room-card ${warningClass}" style="background-color: ${cardBgColor};">
                                 <h3><a href="booking.php?room_id=${room.id}" style="color: #2c3e50; text-decoration: none; border-bottom: 1px dashed #2c3e50;" title="Bấm vào để Check-in / Check-out">${room.room_name} ⚙️</a></h3>
                                 <div class="room-badge-door" style="background: ${doorColor};">
                                     ${doorBadge}
@@ -295,11 +296,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         formData.append('room_id', roomId);
         formData.append('status', newStatus);
         
-        // ĐÃ SỬA: Truyền tham số true vào hàm loadRealTimeData(true) để ép vẽ lại màu đường top lập tức
         fetch('index.php', { method: 'POST', body: formData }).then(() => loadRealTimeData(true)); 
     }
 
-    setInterval(() => loadRealTimeData(false), 3000); // Quét ngầm định kỳ không cần ép render nếu không có biến cố phần cứng
+    setInterval(() => loadRealTimeData(false), 3000); 
     loadRealTimeData(true); 
     </script>
 </body>
