@@ -25,7 +25,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             $time_now = date('Y-m-d H:i:s');
             $event_type = "LỄ TÂN"; 
             
-            // Cập nhật cấu trúc chuỗi chi tiết tương thích cấu hình: Mặc định Theo giờ [gio], Giá [100000], Cọc [0] để file booking đọc không lỗi
             if ($status === 'khach') {
                 $details = "Lễ tân [$username_action] Check-in khách: Vãng Lai (Chuyển trạng thái nhanh) - Số người: 1 - Hình thức: [gio] (Theo Giờ) - Giá phòng: [100000] (100.000đ/giờ) - Ứng trước: [0] (0đ)";
             } else {
@@ -51,7 +50,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     <style>
         body { font-family: 'Segoe UI', Arial, sans-serif; margin: 15px; background: #eef2f3; color: #333; transition: background 0.3s, color 0.3s; }
         
-        /* HEADER RESPONSIVE */
         .header { background: #2c3e50; color: white; padding: 12px 15px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 12px rgba(0,0,0,0.1); flex-wrap: wrap; gap: 10px; }
         .header h2 { margin: 0; font-size: 16px; letter-spacing: 0.5px; }
         .header a { color: #ffc107; text-decoration: none; font-weight: bold; margin-left: 5px; }
@@ -60,26 +58,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         
         .btn-darkmode { background: #34495e; color: #f1c40f; border: 1px solid #f1c40f; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 12px; }
         
-        /* THỐNG KÊ MINI */
         .stats-container { display: flex; gap: 8px; margin-top: 15px; }
         .stat-card { flex: 1; background: white; padding: 10px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); display: flex; flex-direction: column; justify-content: center; align-items: center; transition: background 0.3s; text-align: center; }
         .stat-card .num { font-size: 18px; font-weight: bold; color: #2c3e50; }
         .stat-card .label { font-size: 10px; color: #7f8c8d; font-weight: bold; margin-top: 2px; }
         
-        /* LƯỚI PHÒNG: MAC ĐỊNH TRÊN MOBILE LÀ 2 PHÒNG MỘT HÀNG */
         .grid-container { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 15px; }
         
-        /* THU NHỎ PHÒNG TRÊN MOBILE (Đường viền trên cùng mặc định) */
         .room-card { padding: 12px 10px; border-radius: 8px; border-top: 4px solid #3498db; box-shadow: 0 2px 6px rgba(0,0,0,0.06); text-align: center; transition: all 0.3s ease; background: white; position: relative; display: flex; flex-direction: column; justify-content: space-between; box-sizing: border-box; }
         .room-card h3 { margin: 0 0 6px 0; font-size: 16px; color: #2c3e50; }
         .room-badge-door { color: white; padding: 4px; margin: 4px 0 8px 0; border-radius: 4px; font-weight: bold; font-size: 11px; letter-spacing: 0.3px; }
         .room-card p { margin: 0 0 6px 0; font-size: 12px; color: #555; }
         .room-card select { width: 100%; padding: 6px; margin-top: 4px; border-radius: 4px; border: 1px solid #ccc; background: white; font-weight: 600; color: #444; cursor: pointer; font-size: 12px; }
         
-        /* ĐÃ SỬA: Loại bỏ hiệu ứng nhấp nháy khẩn cấp nền đỏ, chỉ giữ màu viền đỏ tĩnh khi quên đóng cửa */
         .room-card.door-warning { border-top-color: #e74c3c !important; }
 
-        /* LỊCH SỬ HÀNH LANG & CUỘN NGANG KHÔNG ÉP DÒNG */
         .log-section { background: white; padding: 15px; border-radius: 8px; margin-top: 25px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); transition: background 0.3s; }
         .log-section h3 { margin-top: 0; font-size: 15px; color: #2c3e50; border-bottom: 2px solid #eee; padding-bottom: 8px; }
         
@@ -88,7 +81,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         th, td { border: none; border-bottom: 1px solid #eee; padding: 10px 12px; text-align: left; font-size: 13px; white-space: nowrap; }
         th { background: #f8f9fa; color: #34495e; font-weight: bold; }
         
-        /* Cố định cấu trúc cột hợp lý */
         th:nth-child(1), td:nth-child(1) { min-width: 120px; } 
         th:nth-child(2), td:nth-child(2) { min-width: 90px; }  
         th:nth-child(3), td:nth-child(3) { min-width: 90px; }  
@@ -96,13 +88,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         
         .alert-red { background-color: #f8d7da !important; color: #721c24; font-weight: bold; }
         
-        /* THIẾT LẬP NÚT CHỨC NĂNG: MỖI NÚT MỘT DÒNG TRÊN MOBILE */
         .btn-group-vertical { display: flex; flex-direction: column; gap: 10px; margin-top: 15px; }
         .nav-btn { display: block; width: 100%; text-align: center; background: #3498db; color: white !important; padding: 12px; border-radius: 6px; box-sizing: border-box; text-decoration: none; font-weight: bold; font-size: 14px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
         .nav-btn.analytics { background: #1abc9c; } 
         .nav-btn.danger { background: #e74c3c; }
 
-        /* GIAO DIỆN ĐÊM (DARK MODE) */
         body.dark-mode { background: #1a1a1a; color: #e0e0e0; }
         body.dark-mode .stat-card, body.dark-mode .room-card, body.dark-mode .log-section { background: #2d2d2d; color: #e0e0e0; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
         body.dark-mode .stat-card .num, body.dark-mode .room-card h3, body.dark-mode .log-section h3, body.dark-mode th { color: #ffffff; }
@@ -111,7 +101,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         body.dark-mode select { background: #3d3d3d; color: #fff; border-color: #555; }
         body.dark-mode .table-responsive { border-color: #444; }
 
-        /* ĐIỀU CHỈNH KHI HIỂN THỊ TRÊN MÀN HÌNH LỚN (MÁY TÍNH/TABLET) */
         @media (min-width: 768px) {
             .header h2 { font-size: 20px; }
             .header-right { width: auto; justify-content: flex-end; }
@@ -209,7 +198,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         document.body.classList.add('dark-mode');
     }
 
-    function loadRealTimeData() {
+    // THAY ĐỔI THAM SỐ forceRender: Ép hệ thống vẽ lại màu khi lễ tân chủ động chọn trạng thái nhanh
+    function loadRealTimeData(forceRender = false) {
         fetch('api_get_status.php')
             .then(res => res.json())
             .then(data => {
@@ -226,7 +216,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 document.getElementById('count-vesinh').innerText = vesinh;
 
                 let currentRoomsState = JSON.stringify(data.rooms);
-                if (currentRoomsState !== lastRoomsState) {
+                
+                // NẾU forceRender bằng True HOẶC có sự thay đổi phần cứng -> Vẽ lại toàn bộ dải màu top
+                if (forceRender || currentRoomsState !== lastRoomsState) {
                     lastRoomsState = currentRoomsState;
 
                     let roomHtml = '';
@@ -237,18 +229,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                         let displayName = statusMap[room.status] || room.status.toUpperCase();
 
                         let cardBgColor = '#ffffff'; 
-                        // 🔥 ĐÃ SỬA: Thay đổi màu đường thẳng trên cùng (border-top-color) theo đúng yêu cầu
-                        let borderTopColor = '#3498db'; // Mặc định hệ thống
+                        let borderTopColor = '#3498db'; 
                         
                         if (room.status === 'trong') {
                             cardBgColor = '#e2f0d9'; 
-                            borderTopColor = '#28a745'; // Màu xanh lá cho phòng trống
+                            borderTopColor = '#28a745'; 
                         } else if (room.status === 'khach') {
                             cardBgColor = '#fce4d6'; 
-                            borderTopColor = '#dc3545'; // Màu đỏ cho phòng có khách
+                            borderTopColor = '#dc3545'; 
                         } else if (room.status === 've_sinh' || room.status === 've_sink') {
                             cardBgColor = '#fff2cc'; 
-                            borderTopColor = '#ffc107'; // Màu vàng cho phòng vệ sinh
+                            borderTopColor = '#ffc107'; 
                         }
 
                         let doorColor = room.door === 'Mở' ? '#dc3545' : '#28a745';
@@ -303,11 +294,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         formData.append('action', 'update_room');
         formData.append('room_id', roomId);
         formData.append('status', newStatus);
-        fetch('index.php', { method: 'POST', body: formData }).then(() => loadRealTimeData()); 
+        
+        // ĐÃ SỬA: Truyền tham số true vào hàm loadRealTimeData(true) để ép vẽ lại màu đường top lập tức
+        fetch('index.php', { method: 'POST', body: formData }).then(() => loadRealTimeData(true)); 
     }
 
-    setInterval(loadRealTimeData, 3000);
-    loadRealTimeData(); 
+    setInterval(() => loadRealTimeData(false), 3000); // Quét ngầm định kỳ không cần ép render nếu không có biến cố phần cứng
+    loadRealTimeData(true); 
     </script>
 </body>
 </html>
