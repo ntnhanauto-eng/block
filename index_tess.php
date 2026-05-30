@@ -1,3 +1,47 @@
+<?php
+include 'config.php';
+checkLogin(); // Bắt buộc đăng nhập
+
+// XỬ LÝ CẬP NHẬT TRẠNG THÁI PHÒNG VÀ GHI NHẬT KÝ LỄ TÂN
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'update_room') {
+    $room_id = (int)$_POST['room_id'];
+    $status = mysqli_real_escape_string($conn, $_POST['status']);
+    $username_action = $_SESSION['username']; 
+
+    $old_room_query = mysqli_query($conn, "SELECT room_name, status FROM rooms WHERE id = $room_id");
+    $old_room_data = mysqli_fetch_assoc($old_room_query);
+    
+    if ($old_room_data) {
+        $room_name = $old_room_data['room_name'];
+        $old_status = $old_room_data['status'];
+
+        $status_map = ['trong' => 'Phòng Trống', 'khach' => 'Có Khách Ở', 've_sinh' => 'Đang Vệ Sinh'];
+        $old_status_vn = $status_map[$old_status] ?? $old_status;
+        $new_status_vn = $status_map[$status] ?? $status;
+
+        if ($old_status !== $status) {
+            mysqli_query($conn, "UPDATE rooms SET status = '$status' WHERE id = $room_id");
+
+            $time_now = date('Y-m-d H:i:s');
+            $event_type = "LỄ TÂN"; 
+            
+            // Cập nhật cấu trúc chuỗi chi tiết tương thích cấu hình: Mặc định Theo giờ [gio], Giá [100000], Cọc [0] để file booking đọc không lỗi
+            if ($status === 'khach') {
+                $details = "Lễ tân [$username_action] Check-in khách: Vãng Lai (Chuyển trạng thái nhanh) - Số người: 1 - Hình thức: [gio] (Theo Giờ) - Giá phòng: [100000] (100.000đ/giờ) - Ứng trước: [0] (0đ)";
+            } else {
+                $details = "Nhân viên [$username_action] đã chuyển trạng thái từ ($old_status_vn) thành ($new_status_vn)";
+            }
+            
+            mysqli_query($conn, "INSERT INTO room_logs (room_id, event_time, event_type, details) VALUES ($room_id, '$time_now', '$event_type', '$details')");
+            
+            if (function_exists('sendTelegramNotification')) {
+                sendTelegramNotification("👤 <b>CẬP NHẬT TỪ LỄ TÂN:</b>\n🏨 <b>$room_name</b>\n✍️ Người thực hiện: <code>$username_action</code>\n🔄 Thay đổi: $old_status_vn ➡️ <b>$new_status_vn</b>");
+            }
+        }
+    }
+    exit();
+}
+?>
 <?php 
 include 'header.php'; 
 ?>
