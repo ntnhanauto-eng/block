@@ -69,14 +69,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         /* LƯỚI PHÒNG: MAC ĐỊNH TRÊN MOBILE LÀ 2 PHÒNG MỘT HÀNG */
         .grid-container { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 15px; }
         
-        /* THU NHỎ PHÒNG TRÊN MOBILE */
+        /* THU NHỎ PHÒNG TRÊN MOBILE (Đường viền trên cùng mặc định) */
         .room-card { padding: 12px 10px; border-radius: 8px; border-top: 4px solid #3498db; box-shadow: 0 2px 6px rgba(0,0,0,0.06); text-align: center; transition: all 0.3s ease; background: white; position: relative; display: flex; flex-direction: column; justify-content: space-between; box-sizing: border-box; }
         .room-card h3 { margin: 0 0 6px 0; font-size: 16px; color: #2c3e50; }
         .room-badge-door { color: white; padding: 4px; margin: 4px 0 8px 0; border-radius: 4px; font-weight: bold; font-size: 11px; letter-spacing: 0.3px; }
         .room-card p { margin: 0 0 6px 0; font-size: 12px; color: #555; }
         .room-card select { width: 100%; padding: 6px; margin-top: 4px; border-radius: 4px; border: 1px solid #ccc; background: white; font-weight: 600; color: #444; cursor: pointer; font-size: 12px; }
         
-        /* ĐÃ SỬA: Loại bỏ hiệu ứng nhấp nháy khẩn cấp đổi màu nền để tránh nhân viên chú ý, chỉ giữ màu viền đỏ tĩnh phân biệt */
+        /* ĐÃ SỬA: Loại bỏ hiệu ứng nhấp nháy khẩn cấp nền đỏ, chỉ giữ màu viền đỏ tĩnh khi quên đóng cửa */
         .room-card.door-warning { border-top-color: #e74c3c !important; }
 
         /* LỊCH SỬ HÀNH LANG & CUỘN NGANG KHÔNG ÉP DÒNG */
@@ -120,7 +120,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             .stat-card .num { font-size: 24px; }
             .stat-card .label { font-size: 13px; }
             
-            /* Máy tính tự chia cột đều */
             .grid-container { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; }
             .room-card { padding: 20px; }
             .room-card h3 { font-size: 20px; }
@@ -238,9 +237,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                         let displayName = statusMap[room.status] || room.status.toUpperCase();
 
                         let cardBgColor = '#ffffff'; 
-                        if (room.status === 'trong') cardBgColor = '#e2f0d9'; 
-                        else if (room.status === 'khach') cardBgColor = '#fce4d6'; 
-                        else if (room.status === 've_sinh' || room.status === 've_sink') cardBgColor = '#fff2cc'; 
+                        // 🔥 ĐÃ SỬA: Thay đổi màu đường thẳng trên cùng (border-top-color) theo đúng yêu cầu
+                        let borderTopColor = '#3498db'; // Mặc định hệ thống
+                        
+                        if (room.status === 'trong') {
+                            cardBgColor = '#e2f0d9'; 
+                            borderTopColor = '#28a745'; // Màu xanh lá cho phòng trống
+                        } else if (room.status === 'khach') {
+                            cardBgColor = '#fce4d6'; 
+                            borderTopColor = '#dc3545'; // Màu đỏ cho phòng có khách
+                        } else if (room.status === 've_sinh' || room.status === 've_sink') {
+                            cardBgColor = '#fff2cc'; 
+                            borderTopColor = '#ffc107'; // Màu vàng cho phòng vệ sinh
+                        }
 
                         let doorColor = room.door === 'Mở' ? '#dc3545' : '#28a745';
                         let doorBadge = room.door === 'Mở' ? '🔓 ĐANG MỞ' : '🔒 Cửa Đóng';
@@ -251,7 +260,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                         }
 
                         roomHtml += `
-                            <div class="room-card ${warningClass}" style="background-color: ${cardBgColor};">
+                            <div class="room-card ${warningClass}" style="background-color: ${cardBgColor}; border-top-color: ${borderTopColor};">
                                 <h3><a href="booking.php?room_id=${room.id}" style="color: #2c3e50; text-decoration: none; border-bottom: 1px dashed #2c3e50;" title="Bấm vào để Check-in / Check-out">${room.room_name} ⚙️</a></h3>
                                 <div class="room-badge-door" style="background: ${doorColor};">
                                     ${doorBadge}
