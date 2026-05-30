@@ -87,13 +87,8 @@ if ($current_page > $total_pages && $total_pages > 0) {
     $offset = ($current_page - 1) * $rows_per_page;
 }
 
-// 4. TRUY VẤN DỮ LIỆU HIỂN THỊ LÊN GIAO DIỆN WEB
-$sql = "SELECT l.*, r.room_name 
-        FROM room_logs l 
-        JOIN rooms r ON l.room_id = r.id 
-        $where_clause 
-        ORDER BY l.event_time DESC  
-        LIMIT $offset, $rows_per_page";
+// 4. TRUY VẤN DỮ LIỆU HIỂN THỊ LÊN GIAO DIỆN WEB (ĐÃ LÀM SẠCH KÝ TỰ ẨN)
+$sql = "SELECT l.*, r.room_name FROM room_logs l JOIN rooms r ON l.room_id = r.id" . $where_clause . "ORDER BY l.event_time DESC LIMIT $offset, $rows_per_page";
 
 $all_logs = mysqli_query($conn, $sql);
 
@@ -103,12 +98,7 @@ if (!$all_logs) {
 
 // ==========================================
 // 🔥 THÀNH PHẦN MỚI: TỰ ĐỘNG BẮN CẢNH BÁO TELEGRAM KHI CÓ SỰ KIỆN BẤT THƯỜNG MỚI PHÁT SINH
-$check_alert_sql = "SELECT l.*, r.room_name 
-                    FROM room_logs l 
-                    JOIN rooms r ON l.room_id = r.id 
-                    WHERE l.event_type = 'BẤT THƯỜNG' 
-                    AND l.event_time >= DATE_SUB(NOW(), INTERVAL 10 SECOND) 
-                    ORDER BY l.id DESC LIMIT 1";
+$check_alert_sql = "SELECT l.*, r.room_name FROM room_logs l JOIN rooms r ON l.room_id = r.id WHERE l.event_type = 'BẤT THƯỜNG' AND l.event_time >= DATE_SUB(NOW(), INTERVAL 10 SECOND) ORDER BY l.id DESC LIMIT 1";
 $check_alert_query = mysqli_query($conn, $check_alert_sql);
 
 if (mysqli_num_rows($check_alert_query) > 0) {
@@ -165,7 +155,6 @@ $search_params = "&filter_room=$filter_room&filter_from=$filter_from&filter_to=$
         th:nth-child(6), td:nth-child(6) { white-space: normal; min-width: 250px; } 
 
         .alert-red td { background-color: #ffe4e6 !important; color: #b91c1c !important; font-weight: bold !important; }
-        /* CSS MỚI: Bôi màu vàng nhạt cho dòng LƯU Ý */
         .alert-yellow td { background-color: #fef9c3 !important; color: #a16207 !important; font-weight: bold !important; }
         
         .no-data { text-align: center; padding: 30px; font-style: italic; color: #94a3b8; }
@@ -174,7 +163,6 @@ $search_params = "&filter_room=$filter_room&filter_from=$filter_from&filter_to=$
         .badge-letan { background: #e0f2fe; color: #0369a1; } 
         .badge-clean { background: #dcfce7; color: #15803d; } 
         .badge-danger { background: #b91c1c !important; color: #ffffff !important; box-shadow: 0 2px 4px rgba(0,0,0,0.1); } 
-        /* CSS MỚI: Badge màu vàng cho chữ LƯU Ý */
         .badge-warning { background: #fef08a !important; color: #854d0e !important; }
         .badge-normal { background: #f1f5f9; color: #475569; } 
 
@@ -248,7 +236,6 @@ $search_params = "&filter_room=$filter_room&filter_from=$filter_from&filter_to=$
                 <?php if (mysqli_num_rows($all_logs) > 0): ?>
                     <?php while($l = mysqli_fetch_assoc($all_logs)): ?>
                         <?php 
-                            // TỐI ƯU CƠ CHẾ ĐỔI MÀU DÒNG: Nếu BẤT THƯỜNG -> alert-red, nếu LƯU Ý -> alert-yellow
                             $row_class = '';
                             if ($l['event_type'] === 'BẤT THƯỜNG') {
                                 $row_class = 'alert-red';
@@ -260,7 +247,7 @@ $search_params = "&filter_room=$filter_room&filter_from=$filter_from&filter_to=$
                             if ($l['event_type'] === 'LỄ TÂN') $badge_class = 'badge-letan';
                             elseif ($l['event_type'] === 'DỌN XONG' || $l['event_type'] === 'DỌN PHÒNG') $badge_class = 'badge-clean';
                             elseif ($l['event_type'] === 'BẤT THƯỜNG') $badge_class = 'badge-danger';
-                            elseif ($l['event_type'] === 'LƯU Ý') $badge_class = 'badge-warning'; // Gán màu badge warning cho LƯU Ý
+                            elseif ($l['event_type'] === 'LƯU Ý') $badge_class = 'badge-warning';
 
                             $money_display = (int)$l['amount'];
                         ?>
