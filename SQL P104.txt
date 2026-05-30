@@ -1,0 +1,2 @@
+INSERT INTO rooms (id, room_name, status) VALUES 
+(4, 'Phòng 104', 'trong'),
