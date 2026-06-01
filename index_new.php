@@ -49,51 +49,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     <title>Hệ thống Quản lý Khách sạn Real-time</title>
     <style>
         body { font-family: 'Segoe UI', Arial, sans-serif; margin: 15px; background: #eef2f3; color: #333; transition: background 0.3s, color 0.3s; }
-        
-        /* HEADER RESPONSIVE */
         .header { background: #2c3e50; color: white; padding: 12px 15px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 12px rgba(0,0,0,0.1); flex-wrap: wrap; gap: 10px; }
         .header h2 { margin: 0; font-size: 16px; letter-spacing: 0.5px; }
         .header a { color: #ffc107; text-decoration: none; font-weight: bold; margin-left: 5px; }
         .header-right { display: flex; align-items: center; justify-content: space-between; width: 100%; }
         .user-info { font-size: 13px; text-align: right; }
-        
         .btn-darkmode { background: #34495e; color: #f1c40f; border: 1px solid #f1c40f; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 12px; }
-        
-        /* THỐNG KÊ MINI */
         .stats-container { display: flex; gap: 8px; margin-top: 15px; }
         .stat-card { flex: 1; background: white; padding: 10px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); display: flex; flex-direction: column; justify-content: center; align-items: center; transition: background 0.3s; text-align: center; }
         .stat-card .num { font-size: 18px; font-weight: bold; color: #2c3e50; }
         .stat-card .label { font-size: 10px; color: #7f8c8d; font-weight: bold; margin-top: 2px; }
-        
-        /* LƯỚI PHÒNG: MAC ĐỊNH TRÊN MOBILE LÀ 2 PHÒNG MỘT HÀNG */
         .grid-container { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 15px; }
-        
-        /* CẤU HÌNH Ô PHÒNG CHUNG */
         .room-card { padding: 12px 10px; border-radius: 8px; text-align: center; transition: all 0.3s ease; background: white; position: relative; display: flex; flex-direction: column; justify-content: space-between; box-sizing: border-box; }
         .room-card h3 { margin: 0 0 6px 0; font-size: 16px; color: #2c3e50; }
         .room-badge-door { color: white; padding: 4px; margin: 4px 0 8px 0; border-radius: 4px; font-weight: bold; font-size: 11px; letter-spacing: 0.3px; }
         .room-card p { margin: 0 0 6px 0; font-size: 12px; color: #555; }
         .room-card select { width: 100%; padding: 6px; margin-top: 4px; border-radius: 4px; border: 1px solid #ccc; background: white; font-weight: 600; color: #444; cursor: pointer; font-size: 12px; }
-        
-        /* Viền đỏ khẩn cấp tĩnh khi quên đóng cửa */
         .room-card.door-warning { box-shadow: 0 0 12px #e74c3c !important; border: 2px solid #e74c3c !important; }
-
-        /* LỊCH SỬ HÀNH LANG & CUỘN NGANG KHÔNG ÉP DÒNG */
         .log-section { background: white; padding: 15px; border-radius: 8px; margin-top: 25px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); transition: background 0.3s; }
         .log-section h3 { margin-top: 0; font-size: 15px; color: #2c3e50; border-bottom: 2px solid #eee; padding-bottom: 8px; }
-        
         .table-responsive { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: 4px; border: 1px solid #ddd; margin-top: 10px; }
         table { width: 100%; border-collapse: collapse; min-width: 600px; }
         th, td { border: none; border-bottom: 1px solid #eee; padding: 10px 12px; text-align: left; font-size: 13px; white-space: nowrap; }
         th { background: #f8f9fa; color: #34495e; font-weight: bold; }
-        
         th:nth-child(1), td:nth-child(1) { min-width: 120px; } 
         th:nth-child(2), td:nth-child(2) { min-width: 90px; }  
         th:nth-child(3), td:nth-child(3) { min-width: 90px; }  
         th:nth-child(4), td:nth-child(4) { white-space: normal; min-width: 250px; } 
-        
         .alert-red { background-color: #f8d7da !important; color: #721c24; font-weight: bold; }
-        
         .btn-group-vertical { display: flex; flex-direction: column; gap: 10px; margin-top: 15px; }
         .nav-btn { display: block; width: 100%; text-align: center; background: #3498db; color: white !important; padding: 12px; border-radius: 6px; box-sizing: border-box; text-decoration: none; font-weight: bold; font-size: 14px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
         .nav-btn.analytics { background: #1abc9c; } 
@@ -114,17 +97,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             .stat-card { padding: 15px; }
             .stat-card .num { font-size: 24px; }
             .stat-card .label { font-size: 13px; }
-            
             .grid-container { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; }
             .room-card { padding: 20px; }
             .room-card h3 { font-size: 20px; }
             .room-badge-door { font-size: 13px; }
             .room-card p { font-size: 13px; }
             .room-card select { font-size: 13px; }
-            
             .log-section h3 { font-size: 18px; }
             table { min-width: 100%; } 
-            
             .btn-group-vertical { flex-direction: row; }
             .nav-btn { width: auto; display: inline-block; }
         }
@@ -164,7 +144,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
         <div class="btn-group-vertical">
             <a href="danhsach_buongphong.php" class="nav-btn">🧹 XEM TRANG ĐIỀU HÀNH BUỒNG PHÒNG</a>
-            
             <?php if (isAdmin()): ?>
                 <a href="admin_dashboard.php" class="nav-btn analytics">📊 XEM BÁO CÁO & PHÂN TÍCH HIỆU SUẤT</a>
                 <a href="admin_logs.php" class="nav-btn danger">📋 XEM LỊCH SỬ KIỂM TOÁN CHUNG</a>
@@ -176,21 +155,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     let lastLogId = 0;
     let lastRoomsState = "";
     let isWarningActive = false;
-
-    function playEmergencySound() {
-        let audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        if (audioCtx) {
-            let oscillator = audioCtx.createOscillator();
-            let gainNode = audioCtx.createGain();
-            oscillator.connect(gainNode);
-            gainNode.connect(audioCtx.destination);
-            oscillator.type = 'sawtooth'; 
-            oscillator.frequency.setValueAtTime(988, audioCtx.currentTime); 
-            gainNode.gain.setValueAtTime(0.15, audioCtx.currentTime);
-            oscillator.start();
-            oscillator.stop(audioCtx.currentTime + 0.3); 
-        }
-    }
 
     function toggleDarkMode() {
         document.body.classList.toggle('dark-mode');
@@ -210,6 +174,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             .then(data => {
                 if (!data) return;
 
+                // 1. Thống kê số lượng trạng thái phòng nhanh
                 let trong = 0, khach = 0, vesinh = 0;
                 data.rooms.forEach(r => {
                     if (r.status === 'trong') trong++;
@@ -222,6 +187,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
                 let currentRoomsState = JSON.stringify(data.rooms);
                 
+                // 2. Render giao diện danh sách phòng
                 if (forceRender || currentRoomsState !== lastRoomsState) {
                     lastRoomsState = currentRoomsState;
 
@@ -229,7 +195,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                     isWarningActive = false; 
 
                     data.rooms.forEach(room => {
-                        // 🔥 ĐÃ NÂNG CẤP LOGIC KIỂM TRA ĐỘNG TRẠNG THÁI VỆ SINH
                         let displayName = room.status.toUpperCase();
                         let cardBgColor = '#ffffff'; 
 
@@ -240,42 +205,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                             displayName = 'Có Khách Ở';
                             cardBgColor = '#fce4d6'; 
                         } else if (room.status === 've_sinh' || room.status === 've_sink') {
-                            // Dò ngầm trong danh sách logs trả về xem phòng này đã có sự kiện bắt đầu dọn phòng chưa
+                            
+                            // 🔥 ĐÃ FIX: Thuật toán quét log tuyến tính cực nhẹ, không dùng vòng lặp lồng lặp gây treo nữa.
                             let hasStartedClean = false;
-                            if (data.logs && data.logs.length > 0) {
-                                for (let i = 0; i < data.logs.length; i++) {
-                                    if (data.logs[i].room_name === room.room_name) {
-                                        // Nếu thấy log BẮT ĐẦU DỌN PHÒNG đầu tiên trong lịch sử gần nhất
-                                        if (data.logs[i].details.includes('BẮT ĐẦU DỌN PHÒNG')) {
-                                            hasStartedClean = true;
-                                            break;
-                                        }
-                                        // Nếu thấy log Hoàn tất hoặc Check-in trước đó thì dừng quét chu kỳ cũ
-                                        if (data.logs[i].details.includes('Hoàn tất ca dọn dẹp') || data.logs[i].event_type === 'BẤT THƯỜNG') {
-                                            break;
-                                        }
-                                    }
-                                }
+                            let matchedLog = data.logs.find(log => log.room_name === room.room_name && 
+                                (log.details.includes('BẮT ĐẦU DỌN PHÒNG') || log.details.includes('Hoàn tất ca dọn dẹp'))
+                            );
+
+                            if (matchedLog && matchedLog.details.includes('BẮT ĐẦU DỌN PHÒNG')) {
+                                hasStartedClean = true;
                             }
 
-                            // Đổi chữ và màu sắc theo tiến độ thực tế của Cleaner
                             if (hasStartedClean) {
                                 displayName = '⏳ Đang Dọn Vệ Sinh';
-                                cardBgColor = '#cfe2ff'; // Màu xanh nước biển nhạt khi đang tiến hành dọn
+                                cardBgColor = '#cfe2ff'; // Xanh dương nhạt
                             } else {
                                 displayName = '⚠️ Chờ Dọn Vệ Sinh';
-                                cardBgColor = '#fff2cc'; // Màu vàng ấm mặc định khi vừa check-out chờ quét dọn
+                                cardBgColor = '#fff2cc'; // Vàng ấm mặc định
                             }
                         }
 
                         let doorColor = room.door === 'Mở' ? '#dc3545' : '#28a745';
                         let doorBadge = room.door === 'Mở' ? '🔓 ĐANG MỞ' : '🔒 CỬA ĐÓNG';
 
-                        let warningClass = room.is_forget_warning ? 'door-warning' : '';
                         if (room.is_forget_warning) {
                             isWarningActive = true; 
                         }
 
+                        let warningClass = room.is_forget_warning ? 'door-warning' : '';
                         let customStyle = 'border: 1px solid #333 !important; box-shadow: 0 4px 15px rgba(243, 114, 140, 0.2) !important;';
 
                         roomHtml += `
@@ -296,6 +253,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                     document.getElementById('rooms-display').innerHTML = roomHtml;
                 }
 
+                // 3. Cập nhật bảng Nhật ký sự kiện hành lang
                 let latestLog = data.logs[0];
                 let latestLogId = latestLog ? latestLog.id : 0;
 
@@ -308,14 +266,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                     });
                     document.getElementById('logs-display').innerHTML = logHtml;
                 }
-            });
+            })
+            .catch(err => console.error("Lỗi đồng bộ API:", err));
     }
-
-    setInterval(() => {
-        if (isWarningActive) {
-            // playEmergencySound();
-        }
-    }, 3000);
 
     function updateRoomStatus(roomId, newStatus) {
         let formData = new FormData();
@@ -326,6 +279,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         fetch('index.php', { method: 'POST', body: formData }).then(() => loadRealTimeData(true)); 
     }
 
+    // Thiết lập tiến trình quét Real-time 3 giây một lần an toàn
     setInterval(() => loadRealTimeData(false), 3000); 
     loadRealTimeData(true); 
     </script>
