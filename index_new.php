@@ -15,7 +15,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         $room_name = $old_room_data['room_name'];
         $old_status = $old_room_data['status'];
 
-        $status_map = ['trong' => 'Phòng Trống', 'khach' => 'Có Khách Ở', 've_sinh' => 'Đang Vệ Sinh'];
+        $status_map = ['trong' => 'Phòng Trống', 'khach' => 'Có Khách Ở', 've_sine' => 'Đang Vệ Sinh', 've_sinh' => 'Đang Vệ Sinh'];
         $old_status_vn = $status_map[$old_status] ?? $old_status;
         $new_status_vn = $status_map[$status] ?? $status;
 
@@ -65,7 +65,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         .stat-card .num { font-size: 18px; font-weight: bold; color: #2c3e50; }
         .stat-card .label { font-size: 10px; color: #7f8c8d; font-weight: bold; margin-top: 2px; }
         
-        /* LƯỚI PHÒNG: MAC ĐỊNH TRÊN MOBILE LÀ 2 PHÒNG MỘT HÀNG */
+        /* LƯỚI PHÒNG */
         .grid-container { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 15px; }
         
         /* CẤU HÌNH Ô PHÒNG CHUNG */
@@ -75,10 +75,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         .room-card p { margin: 0 0 6px 0; font-size: 12px; color: #555; }
         .room-card select { width: 100%; padding: 6px; margin-top: 4px; border-radius: 4px; border: 1px solid #ccc; background: white; font-weight: 600; color: #444; cursor: pointer; font-size: 12px; }
         
-        /* Viền đỏ khẩn cấp tĩnh khi quên đóng cửa */
         .room-card.door-warning { box-shadow: 0 0 12px #e74c3c !important; border: 2px solid #e74c3c !important; }
 
-        /* LỊCH SỬ HÀNH LANG & CUỘN NGANG KHÔNG ÉP DÒNG */
         .log-section { background: white; padding: 15px; border-radius: 8px; margin-top: 25px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); transition: background 0.3s; }
         .log-section h3 { margin-top: 0; font-size: 15px; color: #2c3e50; border-bottom: 2px solid #eee; padding-bottom: 8px; }
         
@@ -176,6 +174,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     let lastLogId = 0;
     let lastRoomsState = "";
     let isWarningActive = false;
+    
+    // 🔥 GIẢI PHÁP SỬA LỖI: Khởi tạo một mảng bộ nhớ tạm Global trên Trình duyệt để lưu vết "Đang dọn" vĩnh viễn
+    // Nó giúp khắc phục việc log cũ bị văng ra khỏi danh sách trả về của API
+    let globalCleaningRooms = JSON.parse(localStorage.getItem('active_cleaning_rooms')) || {};
 
     function playEmergencySound() {
         let audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -220,7 +222,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 document.getElementById('count-khach').innerText = khach;
                 document.getElementById('count-vesinh').innerText = vesinh;
 
-                let currentRoomsState = JSON.stringify(data.rooms);
+                // 🔥 CẬP NHẬT BỘ LỌC ĐỘNG TỪ LOGS TRƯỚC KHI RENDER Ô PHÒNG
+                if (data.logs && data.logs.length > 0) {
+                    // Quét ngược từ cũ đến mới để cập nhật trạng thái dọn dẹp vào bộ nhớ LocalStorage
+                    [...data.logs].reverse().forEach(log => {
+                        if (log.details.includes('BẮT ĐẦU DỌN PHÒNG')) {
+                            globalCleaningRooms[log.room_name] = true;
+                        } else if (log.details.includes('Hoàn tất ca dọn dẹp') || log.details.includes('thành (Phòng Trống)')) {
+                            globalCleaningRooms[log.room_name] = false;
+                        }
+                    });
+                    localStorage.setItem('active_cleaning_rooms', JSON.stringify(globalCleaningRooms));
+                }
+
+                let currentRoomsState = JSON.stringify(data.rooms) + JSON.stringify(globalCleaningRooms);
                 
                 if (forceRender || currentRoomsState !== lastRoomsState) {
                     lastRoomsState = currentRoomsState;
@@ -235,24 +250,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                         if (room.status === 'trong') {
                             displayName = 'Phòng Trống';
                             cardBgColor = '#e2f0d9'; 
+                            globalCleaningRooms[room.room_name] = false; // Bảo hiểm: Trống thì chắc chắn không dọn
                         } else if (room.status === 'khach') {
                             displayName = 'Có Khách Ở';
                             cardBgColor = '#fce4d6'; 
+                            globalCleaningRooms[room.room_name] = false; // Bảo hiểm: Có khách thì chắc chắn không dọn
                         } else if (room.status === 've_sinh' || room.status === 've_sink') {
-                            cardBgColor = '#fff2cc'; // 🔥 GIỮ NGUYÊN: Màu nền vàng ấm cho cả 2 trạng thái buồng phòng theo ý bạn
+                            cardBgColor = '#fff2cc'; 
 
-                            // 🔥 THUẬT TOÁN KIỂM TRA ĐỘNG TRẠNG THÁI CHỜ DỌN / ĐANG DỌN QUA MẢNG NHẬT KÝ ĐÃ CÓ SẴN
-                            let isCleaningStarted = false;
-                            if (data.logs && data.logs.length > 0) {
-                                // Tìm log mới nhất liên quan đến phòng này để đối soát
-                                let roomLog = data.logs.find(l => l.room_name === room.room_name);
-                                if (roomLog && roomLog.details.includes('BẮT ĐẦU DỌN PHÒNG')) {
-                                    isCleaningStarted = true;
-                                }
-                            }
-
-                            // Cập nhật chữ trạng thái tương ứng
-                            if (isCleaningStarted) {
+                            // Kiểm tra chéo trạng thái lưu vết từ bộ nhớ bền vững LocalStorage
+                            if (globalCleaningRooms[room.room_name] === true) {
                                 displayName = '⏳ Đang Dọn Vệ Sinh';
                             } else {
                                 displayName = '⚠️ Chờ Dọn Vệ Sinh';
