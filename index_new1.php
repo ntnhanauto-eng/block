@@ -2,7 +2,7 @@
 include 'config.php';
 checkLogin(); // Bắt buộc đăng nhập
 
-// XỬ LÝ CẬP NHẬT TRẠNG THÁI PHÒNG VÀ GHI NHẬT KÝ LỄ TÂN
+// XỬ LÝ CẬP NHẬT TRẠNG THÁI PHÒNG VÀ GHI NHẬT KÝ LỄ TÂN (GIỮ NGUYÊN ĐỂ KHÔNG LỖI KHỬ CHỨC NĂNG NGẦM)
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'update_room') {
     $room_id = (int)$_POST['room_id'];
     $status = mysqli_real_escape_string($conn, $_POST['status']);
@@ -15,7 +15,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         $room_name = $old_room_data['room_name'];
         $old_status = $old_room_data['status'];
 
-        $status_map = ['trong' => 'Phòng Trống', 'khach' => 'Có Khách Ở', 've_sinh' => 'Đang Vệ Sinh'];
+        $status_map = ['trong' => 'Phòng Trống', 'khach' => 'Có Khách Ở', 've_sine' => 'Đang Vệ Sinh', 've_sinh' => 'Đang Vệ Sinh'];
         $old_status_vn = $status_map[$old_status] ?? $old_status;
         $new_status_vn = $status_map[$status] ?? $status;
 
@@ -68,12 +68,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         /* LƯỚI PHÒNG */
         .grid-container { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 15px; }
         
-        /* CẤU HÌNH Ô PHÒNG CHUNG */
-        .room-card { padding: 12px 10px; border-radius: 8px; text-align: center; transition: all 0.3s ease; background: white; position: relative; display: flex; flex-direction: column; justify-content: space-between; box-sizing: border-box; }
-        .room-card h3 { margin: 0 0 6px 0; font-size: 16px; color: #2c3e50; }
-        .room-badge-door { color: white; padding: 4px; margin: 4px 0 8px 0; border-radius: 4px; font-weight: bold; font-size: 11px; letter-spacing: 0.3px; }
-        .room-card p { margin: 0 0 6px 0; font-size: 12px; color: #555; }
-        .room-card select { width: 100%; padding: 6px; margin-top: 4px; border-radius: 4px; border: 1px solid #ccc; background: white; font-weight: 600; color: #444; cursor: pointer; font-size: 12px; }
+        /* CẤU HÌNH Ô PHÒNG CHUNG (Đã tinh chỉnh khoảng cách khi bỏ select) */
+        .room-card { padding: 15px 10px; border-radius: 8px; text-align: center; transition: all 0.3s ease; background: white; position: relative; display: flex; flex-direction: column; justify-content: space-between; box-sizing: border-box; min-height: 140px; }
+        .room-card h3 { margin: 0 0 8px 0; font-size: 16px; color: #2c3e50; }
+        .room-badge-door { color: white; padding: 5px; margin: 4px 0 10px 0; border-radius: 4px; font-weight: bold; font-size: 11px; letter-spacing: 0.3px; }
+        .room-card p { margin: 0; font-size: 13px; color: #475569; font-weight: 500; }
         
         .room-card.door-warning { box-shadow: 0 0 12px #e74c3c !important; border: 2px solid #e74c3c !important; }
 
@@ -102,7 +101,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         body.dark-mode .stat-card .num, body.dark-mode .room-card h3, body.dark-mode .log-section h3, body.dark-mode th { color: #ffffff; }
         body.dark-mode th { background: #3d3d3d; }
         body.dark-mode td, body.dark-mode th { border-color: #444; border-bottom: 1px solid #444; }
-        body.dark-mode select { background: #3d3d3d; color: #fff; border-color: #555; }
         body.dark-mode .table-responsive { border-color: #444; }
 
         @media (min-width: 768px) {
@@ -114,11 +112,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             .stat-card .label { font-size: 13px; }
             
             .grid-container { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; }
-            .room-card { padding: 20px; }
+            .room-card { padding: 20px; min-height: 160px; }
             .room-card h3 { font-size: 20px; }
             .room-badge-door { font-size: 13px; }
-            .room-card p { font-size: 13px; }
-            .room-card select { font-size: 13px; }
+            .room-card p { font-size: 14px; }
             
             .log-section h3 { font-size: 18px; }
             table { min-width: 100%; } 
@@ -174,6 +171,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     let lastLogId = 0;
     let lastRoomsState = "";
     let isWarningActive = false;
+    
+    // Khởi tạo bộ nhớ tạm để duy trì vết trạng thái dọn dẹp không bị trôi
+    let globalCleaningRooms = JSON.parse(localStorage.getItem('active_cleaning_rooms')) || {};
 
     function playEmergencySound() {
         let audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -218,7 +218,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 document.getElementById('count-khach').innerText = khach;
                 document.getElementById('count-vesinh').innerText = vesinh;
 
-                let currentRoomsState = JSON.stringify(data.rooms);
+                // Đồng bộ hóa trạng thái dọn dẹp bền vững qua nhật ký
+                if (data.logs && data.logs.length > 0) {
+                    [...data.logs].reverse().forEach(log => {
+                        if (log.details.includes('BẮT ĐẦU DỌN PHÒNG')) {
+                            globalCleaningRooms[log.room_name] = true;
+                        } else if (log.details.includes('Hoàn tất ca dọn dẹp') || log.details.includes('thành (Phòng Trống)')) {
+                            globalCleaningRooms[log.room_name] = false;
+                        }
+                    });
+                    localStorage.setItem('active_cleaning_rooms', JSON.stringify(globalCleaningRooms));
+                }
+
+                let currentRoomsState = JSON.stringify(data.rooms) + JSON.stringify(globalCleaningRooms);
                 
                 if (forceRender || currentRoomsState !== lastRoomsState) {
                     lastRoomsState = currentRoomsState;
@@ -231,37 +243,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                         let cardBgColor = '#ffffff'; 
                         
                         if (room.status === 'trong') {
-                            displayName = 'Phòng Trống';
+                            displayName = '🟢 Phòng Trống';
                             cardBgColor = '#e2f0d9'; 
+                            globalCleaningRooms[room.room_name] = false;
                         } else if (room.status === 'khach') {
-                            displayName = 'Có Khách Ở';
+                            displayName = '🔴 Có Khách Ở';
                             cardBgColor = '#fce4d6'; 
+                            globalCleaningRooms[room.room_name] = false;
                         } else if (room.status === 've_sinh' || room.status === 've_sink') {
                             cardBgColor = '#fff2cc'; 
 
-                            // 🔥 SỬA ĐỔI QUAN TRỌNG: Thuật toán kiểm tra chu kỳ log nâng cao bảo đảm chính xác 100%
-                            let isCleaningStarted = false;
-                            if (data.logs && data.logs.length > 0) {
-                                // Lọc riêng toàn bộ lịch sử hành động của căn phòng này theo thứ tự thời gian mới đến cũ
-                                let specificRoomLogs = data.logs.filter(l => l.room_name === room.room_name);
-                                
-                                if (specificRoomLogs.length > 0) {
-                                    // Tìm kiếm log hành động nghiệp vụ dọn dẹp gần đây nhất
-                                    let latestJobLog = specificRoomLogs.find(l => 
-                                        l.details.includes('BẮT ĐẦU DỌN PHÒNG') || 
-                                        l.details.includes('Hoàn tất ca dọn dẹp') ||
-                                        l.details.includes('thành (Phòng Trống)')
-                                    );
-
-                                    // Nếu log nghiệp vụ buồng phòng gần nhất tìm được là BẮT ĐẦU DỌN PHÒNG
-                                    if (latestJobLog && latestJobLog.details.includes('BẮT ĐẦU DỌN PHÒNG')) {
-                                        isCleaningStarted = true;
-                                    }
-                                }
-                            }
-
-                            // Gán nhãn hiển thị chữ động
-                            if (isCleaningStarted) {
+                            if (globalCleaningRooms[room.room_name] === true) {
                                 displayName = '⏳ Đang Dọn Vệ Sinh';
                             } else {
                                 displayName = '⚠️ Chờ Dọn Vệ Sinh';
@@ -280,18 +272,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
                         let customStyle = 'border: 1px solid #333 !important; box-shadow: 0 4px 15px rgba(243, 114, 140, 0.2) !important;';
 
+                        // 🔥 ĐÃ THAY ĐỔI: Loại bỏ hoàn toàn khối <select> ... </select> để vận hành tự động hóa tự nhiên
                         roomHtml += `
                             <div class="room-card ${warningClass}" style="background-color: ${cardBgColor}; ${customStyle}">
                                 <h3><a href="booking.php?room_id=${room.id}" style="color: #2c3e50; text-decoration: none; border-bottom: 1px dashed #2c3e50;" title="Bấm vào để Check-in / Check-out">${room.room_name} ⚙️</a></h3>
                                 <div class="room-badge-door" style="background: ${doorColor};">
                                     ${doorBadge}
                                 </div>
-                                <p>Cấu hình: <b>${displayName}</b></p>
-                                <select onchange="updateRoomStatus(${room.id}, this.value)">
-                                    <option value="trong" ${room.status=='trong'?'selected':''}>Phòng Trống</option>
-                                    <option value="khach" ${room.status=='khach'?'selected':''}>Có Khách Ở</option>
-                                    <option value="ve_sinh" ${(room.status=='ve_sinh' || room.status=='ve_sink')?'selected':''}>Đang Vệ Sinh</option>
-                                </select>
+                                <p>Trạng thái: <b>${displayName}</b></p>
                             </div>
                         `;
                     });
@@ -319,12 +307,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         }
     }, 3000);
 
+    // Giữ nguyên hàm cập nhật này để không gây lỗi gọi hàm từ các tiến trình xử lý ngầm khác
     function updateRoomStatus(roomId, newStatus) {
         let formData = new FormData();
         formData.append('action', 'update_room');
         formData.append('room_id', roomId);
         formData.append('status', newStatus);
-        
         fetch('index.php', { method: 'POST', body: formData }).then(() => loadRealTimeData(true)); 
     }
 
