@@ -32,6 +32,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     exit();
 }
 
+// THUẬT TOÁN LỌC: Chỉ lấy các phòng đang ở trạng thái 've_sinh'
 $rooms_q = mysqli_query($conn, "SELECT id, room_name, status FROM rooms WHERE status = 've_sinh' ORDER BY room_name ASC");
 $total_waiting = mysqli_num_rows($rooms_q);
 ?>
@@ -48,7 +49,12 @@ $total_waiting = mysqli_num_rows($rooms_q);
         h1 { font-size: 16px; color: #1e293b; margin: 0; text-transform: uppercase; letter-spacing: 0.5px; }
         .back-link { font-size: 14px; text-decoration: none; color: #007bff; font-weight: bold; }
         .refresh-status { font-size: 11px; color: #64748b; text-align: right; margin-bottom: 15px; font-style: italic; }
-        .card { background: white; width: 100%; padding: 25px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); text-align: center; box-sizing: border-box; margin-bottom: 20px; border-left: 6px solid #ffc107; }
+        
+        /* THẺ PHÒNG */
+        .card { background: white; width: 100%; padding: 25px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); text-align: center; box-sizing: border-box; margin-bottom: 20px; }
+        .card.state-waiting { border-left: 6px solid #ffc107; } /* Màu vàng khi chờ dọn */
+        .card.state-running { border-left: 6px solid #007bff; } /* Màu xanh dương khi đang dọn */
+        
         .room-badge { background: #0288d1; color: white; font-size: 24px; font-weight: bold; padding: 10px 20px; border-radius: 8px; display: inline-block; margin-bottom: 12px; }
         .status-text { font-size: 14px; color: #64748b; margin-bottom: 15px; line-height: 1.6; }
         .btn { display: block; width: 100%; padding: 16px; font-size: 15px; font-weight: bold; color: white; border: none; border-radius: 8px; cursor: pointer; margin-bottom: 10px; text-decoration: none; box-sizing: border-box; }
@@ -84,7 +90,7 @@ $total_waiting = mysqli_num_rows($rooms_q);
                 $checkout_log = mysqli_fetch_assoc($checkout_log_q);
                 $checkout_time = $checkout_log['event_time'] ?? '1970-01-01 00:00:00';
 
-                // 🔥 ĐÃ SỬA: Dùng UNIX_TIMESTAMP(NOW()) trực tiếp từ MySQL để triệt tiêu lỗi lệch múi giờ giữa host và DB
+                // Đối soát thời gian bằng UNIX_TIMESTAMP từ MySQL chống lệch múi giờ
                 $clean_log_q = mysqli_query($conn, "
                     SELECT event_time, details, 
                     (UNIX_TIMESTAMP(NOW()) - UNIX_TIMESTAMP(event_time)) as seconds_passed 
@@ -101,7 +107,6 @@ $total_waiting = mysqli_num_rows($rooms_q);
                 $cleaner_name = $current_user;
                 $start_time_string = "";
 
-                // Chỉ khi số giây trôi qua lớn hơn hoặc bằng 0 thì hệ thống mới chấp nhận đồng bộ
                 if ($clean_log && (int)$clean_log['seconds_passed'] >= 0) {
                     $has_started = true;
                     $start_time_string = $clean_log['event_time'];
@@ -115,11 +120,21 @@ $total_waiting = mysqli_num_rows($rooms_q);
                 $qr_api_url = "https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=" . urlencode($action_url);
             ?>
             
-            <div class="card">
+            <div class="card <?php echo $has_started ? 'state-running' : 'state-waiting'; ?>">
                 <div class="room-badge"><?php echo $room_name; ?></div>
                 
                 <div class="status-text">
-                    Trạng thái: <span style="color:#d97706; font-weight:bold;">⚠️ CHỜ VỆ SINH</span><br>
+                    Trạng thái: 
+                    <b>
+                    <?php 
+                        if (!$has_started) {
+                            echo '<span style="color:#d97706;">⚠️ CHỜ VỆ SINH</span>';
+                        } else {
+                            echo '<span style="color:#007bff;">⏳ ĐANG TIẾN HÀNH DỌN</span>';
+                        }
+                    ?>
+                    </b>
+                    <br>
                     <span class="user-tag">👤 Tài khoản thực hiện: <?php echo htmlspecialchars($has_started ? $cleaner_name : $current_user); ?></span>
                 </div>
 
