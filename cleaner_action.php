@@ -2,7 +2,6 @@
 include 'config.php';
 checkLogin(); 
 
-// Đảm bảo PHP đồng bộ múi giờ với Việt Nam nếu cấu hình hệ thống dùng hàm thời gian của PHP
 date_default_timezone_set('Asia/Ho_Chi_Minh');
 
 $message = "";
@@ -17,39 +16,41 @@ if (!$room) {
     die("<h2 style='text-align:center; color:red; margin-top:50px;'>❌ Lỗi: Không tìm thấy số phòng này!</h2>");
 }
 
-// 2. Tìm mốc checkout/yêu cầu vệ sinh gần nhất để làm căn cứ chu kỳ dọn
-$checkout_log_q = mysqli_query($conn, "
-    SELECT event_time FROM room_logs 
+// 2. THUẬT TOÁN MỚI: Kiểm tra xem log gần nhất của phòng này là BẮT ĐẦU hay HOÀN TẤT
+$last_action_q = mysqli_query($conn, "
+    SELECT details, event_time,
+           (UNIX_TIMESTAMP(NOW()) - UNIX_TIMESTAMP(event_time)) as seconds_passed
+    FROM room_logs 
     WHERE room_id = $room_id 
-      AND (details LIKE '%vệ sinh%' OR details LIKE '%ve_sinh%' OR details LIKE '%YÊU CẦU DỌN PHÒNG%') 
-      AND details NOT LIKE '%hoàn tất%' 
+      AND (details LIKE 'BẮT ĐẦU DỌN PHÒNG%' OR details LIKE 'Hoàn tất ca dọn dẹp%')
     ORDER BY id DESC LIMIT 1
 ");
-$checkout_log = mysqli_fetch_assoc($checkout_log_q);
-$checkout_time = $checkout_log['event_time'] ?? '1970-01-01 00:00:00';
+$last_action = mysqli_fetch_assoc($last_action_q);
 
-// 3. Xử lý khi nhân viên tương tác gửi Form
+$has_started_cleaning = false;
+$seconds_elapsed = 0;
+$start_time_string = "";
+$cleaner_name = $current_user;
+
+// Nếu log gần nhất là "BẮT ĐẦU DỌN PHÒNG" -> Chứng tỏ phòng này đang trong tiến trình dọn dẹp
+if ($last_action && strpos($last_action['details'], 'BẮT ĐẦU DỌN PHÒNG') !== false && $room['status'] === 've_sinh') {
+    $has_started_cleaning = true;
+    $start_time_string = $last_action['event_time'];
+    $seconds_elapsed = (int)$last_action['seconds_passed'] < 0 ? 0 : (int)$last_action['seconds_passed'];
+    
+    if (preg_match('/Nhân viên: (.*)$/', $last_action['details'], $matches)) {
+        $cleaner_name = $matches[1];
+    }
+}
+
+// 3. Xử lý khi nhân viên nhấn nút gửi Form gửi lên
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['start_cleaning'])) {
-        // Kiểm tra xem trong chu kỳ này đã có log Bắt đầu nào chưa, tránh ghi trùng
-        $check_exist = mysqli_query($conn, "
-            SELECT id FROM room_logs 
-            WHERE room_id = $room_id 
-              AND details LIKE 'BẮT ĐẦU DỌN PHÒNG%' 
-              AND event_time >= '$checkout_time' 
-            LIMIT 1
-        ");
-        
-        if (mysqli_num_rows($check_exist) == 0) {
+        // Chỉ ghi log khi hệ thống xác nhận chưa ở trạng thái đang dọn
+        if (!$has_started_cleaning) {
             $log_details = "BẮT ĐẦU DỌN PHÒNG - Nhân viên: $current_user";
-            // Ghi nhận mốc thời gian NOW() thuần túy của cơ sở dữ liệu
             mysqli_query($conn, "INSERT INTO room_logs (room_id, event_time, event_type, details, amount) VALUES ($room_id, NOW(), 'LỄ TÂN', '$log_details', 0)");
         }
-        
-        // Cập nhật ngay trạng thái bộ nhớ tạm để hiển thị giao diện tức thì
-        $room['status'] = 've_sinh'; 
-        
-        // Điều hướng lại chính nó để xóa dữ liệu POST tránh hiện tượng nhấn F5 bị gửi lại form
         header("Location: cleaner_action.php?room_id=" . $room_id);
         exit();
     }
@@ -61,38 +62,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         header("Location: cleaner_action.php?room_id=" . $room_id);
         exit();
-    }
-}
-
-// 4. KIỂM TRA TIẾN ĐỘ ĐỂ NUÔI ĐỒNG HỒ ĐẾM GIỜ
-$has_started_cleaning = false;
-$start_time_string = "";
-$seconds_elapsed = 0;
-$cleaner_name = $current_user;
-
-if ($room['status'] === 've_sinh') {
-    // Sử dụng UNIX_TIMESTAMP(NOW()) trực tiếp của MySQL để triệt tiêu hoàn toàn độ lệch giây âm
-    $clean_log_q = mysqli_query($conn, "
-        SELECT event_time, details,
-               (UNIX_TIMESTAMP(NOW()) - UNIX_TIMESTAMP(event_time)) as seconds_passed
-        FROM room_logs 
-        WHERE room_id = $room_id 
-          AND details LIKE 'BẮT ĐẦU DỌN PHÒNG%' 
-          AND event_time >= '$checkout_time' 
-        ORDER BY id DESC LIMIT 1
-    ");
-    $clean_log = mysqli_fetch_assoc($clean_log_q);
-
-    // Chấp nhận sai số xử lý micro-second nếu số giây >= -60 giây nhằm chống rớt trạng thái nút
-    if ($clean_log && (int)$clean_log['seconds_passed'] >= -60) {
-        $has_started_cleaning = true;
-        $start_time_string = $clean_log['event_time'];
-        // Nếu số giây trả về bị âm nhẹ do độ trễ lệnh, ép về 0 để đồng hồ nhảy đẹp
-        $seconds_elapsed = (int)$clean_log['seconds_passed'] < 0 ? 0 : (int)$clean_log['seconds_passed'];
-        
-        if (preg_match('/Nhân viên: (.*)$/', $clean_log['details'], $matches)) {
-            $cleaner_name = $matches[1];
-        }
     }
 }
 ?>
@@ -162,7 +131,6 @@ if ($room['status'] === 've_sinh') {
 </div>
 
 <script>
-// 1. ĐỒNG HỒ ĐẾM TIẾN ĐỘ THỜI GIAN THỰC (CHẠY LIÊN TỤC CỨ 1 GIÂY TĂNG 1 SỐ)
 <?php if ($has_started_cleaning): ?>
     let totalSeconds = <?php echo $seconds_elapsed; ?>;
     const timerElement = document.getElementById('liveTimer');
@@ -179,7 +147,6 @@ if ($room['status'] === 've_sinh') {
     updateTimer();
 <?php endif; ?>
 
-// 2. BỘ TỰ ĐỘNG LÀM MỚI (RELOAD) ĐỂ ĐỒNG BỘ TRẠNG THÁI SAU 10 GIÂY
 let timeLeft = 10;
 const syncCountdown = document.getElementById('sync_countdown');
 let refreshInterval = setInterval(() => {
@@ -190,7 +157,6 @@ let refreshInterval = setInterval(() => {
     }
 }, 1000);
 
-// Chặn hiện tượng reload khi đang ấn nút submit gửi thông tin
 document.querySelectorAll('form').forEach(f => {
     f.addEventListener('submit', () => {
         clearInterval(refreshInterval);
