@@ -8,15 +8,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action_room_id = isset($_POST['room_id']) ? (int)$_POST['room_id'] : 0;
     
     if ($action_room_id > 0) {
-        // Lấy mốc checkout gần nhất để giới hạn chu kỳ
+        // Lấy mốc checkout gần nhất
         $checkout_log_q = mysqli_query($conn, "SELECT event_time FROM room_logs WHERE room_id = $action_room_id AND (details LIKE '%vệ sinh%' OR details LIKE '%ve_sink%') AND details NOT LIKE '%hoàn tất%' ORDER BY id DESC LIMIT 1");
         $checkout_log = mysqli_fetch_assoc($checkout_log_q);
         $checkout_time = $checkout_log['event_time'] ?? '1970-01-01 00:00:00';
 
         if (isset($_POST['start_cleaning'])) {
-            // KIỂM TRA CHẶN: Nếu phòng này ĐÃ bấm bắt đầu từ trước (ở bất kỳ trang nào) thì KHÔNG ghi log nữa
             $check_exist = mysqli_query($conn, "SELECT id FROM room_logs WHERE room_id = $action_room_id AND details LIKE 'BẮT ĐẦU DỌN PHÒNG%' AND event_time > '$checkout_time' LIMIT 1");
-            
             if (mysqli_num_rows($check_exist) == 0) {
                 $log_details = "BẮT ĐẦU DỌN PHÒNG - Nhân viên: $current_user";
                 mysqli_query($conn, "INSERT INTO room_logs (room_id, event_time, event_type, details, amount) VALUES ($action_room_id, NOW(), 'LỄ TÂN', '$log_details', 0)");
@@ -81,11 +79,21 @@ $total_waiting = mysqli_num_rows($rooms_q);
                 $room_id = $r['id'];
                 $room_name = htmlspecialchars($r['room_name']);
                 
+                // Lấy chu kỳ dọn dẹp gần nhất
                 $checkout_log_q = mysqli_query($conn, "SELECT event_time FROM room_logs WHERE room_id = $room_id AND (details LIKE '%vệ sinh%' OR details LIKE '%ve_sink%') AND details NOT LIKE '%hoàn tất%' ORDER BY id DESC LIMIT 1");
                 $checkout_log = mysqli_fetch_assoc($checkout_log_q);
                 $checkout_time = $checkout_log['event_time'] ?? '1970-01-01 00:00:00';
 
-                $clean_log_q = mysqli_query($conn, "SELECT event_time, details FROM room_logs WHERE room_id = $room_id AND details LIKE 'BẮT ĐẦU DỌN PHÒNG%' AND event_time > '$checkout_time' ORDER BY id DESC LIMIT 1");
+                // 🔥 ĐÃ SỬA: Dùng UNIX_TIMESTAMP(NOW()) trực tiếp từ MySQL để triệt tiêu lỗi lệch múi giờ giữa host và DB
+                $clean_log_q = mysqli_query($conn, "
+                    SELECT event_time, details, 
+                    (UNIX_TIMESTAMP(NOW()) - UNIX_TIMESTAMP(event_time)) as seconds_passed 
+                    FROM room_logs 
+                    WHERE room_id = $room_id 
+                      AND details LIKE 'BẮT ĐẦU DỌN PHÒNG%' 
+                      AND event_time > '$checkout_time' 
+                    ORDER BY id DESC LIMIT 1
+                ");
                 $clean_log = mysqli_fetch_assoc($clean_log_q);
 
                 $has_started = false;
@@ -93,10 +101,11 @@ $total_waiting = mysqli_num_rows($rooms_q);
                 $cleaner_name = $current_user;
                 $start_time_string = "";
 
-                if ($clean_log) {
+                // Chỉ khi số giây trôi qua lớn hơn hoặc bằng 0 thì hệ thống mới chấp nhận đồng bộ
+                if ($clean_log && (int)$clean_log['seconds_passed'] >= 0) {
                     $has_started = true;
                     $start_time_string = $clean_log['event_time'];
-                    $seconds_elapsed = time() - strtotime($start_time_string);
+                    $seconds_elapsed = (int)$clean_log['seconds_passed'];
                     if (preg_match('/Nhân viên: (.*)$/', $clean_log['details'], $matches)) {
                         $cleaner_name = $matches[1];
                     }
